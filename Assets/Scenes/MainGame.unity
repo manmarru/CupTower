@@ -310,7 +310,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 106576108}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 384158175}
+        m_TargetAssemblyTypeName: CupManager, Assembly-CSharp
+        m_MethodName: SelectBol
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &263016350
 GameObject:
   m_ObjectHideFlags: 0
@@ -694,7 +706,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 273542379}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 384158175}
+        m_TargetAssemblyTypeName: CupManager, Assembly-CSharp
+        m_MethodName: SelectBol
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &286168592
 GameObject:
   m_ObjectHideFlags: 0
@@ -1166,7 +1190,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 401145130}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 384158175}
+        m_TargetAssemblyTypeName: CupManager, Assembly-CSharp
+        m_MethodName: SelectBol
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &409267763
 GameObject:
   m_ObjectHideFlags: 0
@@ -1286,7 +1322,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 409267766}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 384158175}
+        m_TargetAssemblyTypeName: CupManager, Assembly-CSharp
+        m_MethodName: SelectBol
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &455607678
 GameObject:
   m_ObjectHideFlags: 0
@@ -2074,7 +2122,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 821795351}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 384158175}
+        m_TargetAssemblyTypeName: CupManager, Assembly-CSharp
+        m_MethodName: SelectBol
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &844733423
 GameObject:
   m_ObjectHideFlags: 0
@@ -3322,7 +3382,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1062964856}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 384158175}
+        m_TargetAssemblyTypeName: CupManager, Assembly-CSharp
+        m_MethodName: SelectBol
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &1104004940
 GameObject:
   m_ObjectHideFlags: 0
@@ -4161,7 +4233,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1328421458}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 384158175}
+        m_TargetAssemblyTypeName: CupManager, Assembly-CSharp
+        m_MethodName: SelectBol
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &1333477199
 GameObject:
   m_ObjectHideFlags: 0
@@ -4281,7 +4365,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1333477202}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 384158175}
+        m_TargetAssemblyTypeName: CupManager, Assembly-CSharp
+        m_MethodName: SelectBol
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &1350090536
 GameObject:
   m_ObjectHideFlags: 0
@@ -4696,7 +4792,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1607081129}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 384158175}
+        m_TargetAssemblyTypeName: CupManager, Assembly-CSharp
+        m_MethodName: SelectBol
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &1617079176
 GameObject:
   m_ObjectHideFlags: 0
@@ -5476,7 +5584,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1809089431}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 384158175}
+        m_TargetAssemblyTypeName: CupManager, Assembly-CSharp
+        m_MethodName: SelectBol
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &1868823088
 GameObject:
   m_ObjectHideFlags: 0
@@ -5728,7 +5848,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1871365724}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 384158175}
+        m_TargetAssemblyTypeName: CupManager, Assembly-CSharp
+        m_MethodName: SelectBol
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &2066735980
 GameObject:
   m_ObjectHideFlags: 0
@@ -5848,7 +5980,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 2066735983}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 384158175}
+        m_TargetAssemblyTypeName: CupManager, Assembly-CSharp
+        m_MethodName: SelectBol
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &2112445197
 GameObject:
   m_ObjectHideFlags: 0

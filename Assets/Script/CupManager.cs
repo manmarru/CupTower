@@ -1,12 +1,5 @@
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using Unity.VisualScripting;
-using Unity.VisualScripting.FullSerializer;
-using UnityEditor.U2D;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.InputSystem.LowLevel;
-using UnityEngine.Rendering;
 using UnityEngine.U2D;
 using UnityEngine.UI;
 
@@ -14,21 +7,31 @@ public class CupManager : MonoBehaviour
 {
     private const int MAXCUPINDEX = 27;
     private const int MAXUSABLEINDEX = 11;
+    private const int GAP = 55;
+
     public Button[] Cups;
     public Button[] UsableCups;
 
     public SpriteAtlas Atlas;
-    int Remain = MAXUSABLEINDEX + 1;
     public string ChangeImageIndex = "2";
+    
+    private int Remain = MAXUSABLEINDEX + 1;
+    private int ActiveCups = 7;
     private int SelectIndex = -1; // 하단 버튼 선택
 
     void Start()
     {
         //for debug
         Debug.Log(Remain);
-        foreach (Button button in Cups)
+        for (int i = 0; i < 7; ++i)
         {
-            button.interactable = true;
+            Cups[i].interactable = true;
+        }
+
+        Vector2 criterion = UsableCups[0].GetComponent<RectTransform>().anchoredPosition;
+        for (int i = 0; i <= MAXUSABLEINDEX; ++i)
+        {
+            UsableCups[i].GetComponent<RectTransform>().anchoredPosition = new Vector2(criterion.x + GAP * i, criterion.y);
         }
     }
     void Update() { }
@@ -37,12 +40,55 @@ public class CupManager : MonoBehaviour
     {
         if (SelectIndex == -1)
             return;
-        Debug.Log("function called : ChangeImage");
         GameObject ClickedButton = EventSystem.current.currentSelectedGameObject;
         Image ThisImage = ClickedButton.GetComponent<Image>();
         ThisImage.sprite = Atlas.GetSprite(ChangeImageIndex);
 
         UseBol();
+
+        int StackIndex = -1;
+        Button Temp = ClickedButton.GetComponent<Button>();
+        for (int i = 0; i < MAXCUPINDEX; ++i)
+        {
+            if (Temp == Cups[i])
+            {
+                StackIndex = i;
+            }
+        }
+        if (StackIndex == -1)
+            Debug.Log("StackIndex Error!");
+
+
+        int Originalindex = StackIndex;
+        int Floor = CheckFloor(ref StackIndex);
+        //stackindex는 해당 층에서의 인덱스로 바뀜
+        if (Floor == 7)
+            return;
+        if (StackIndex != 0) // 좌측체크
+        {
+            if (Cups[Originalindex - 1].GetComponent<Image>().sprite.name != "Blank")
+            {
+                int NextIndex = Originalindex + (6 - Floor);
+                if (false == Cups[NextIndex].interactable)
+                {
+                    ++ActiveCups;
+                    Cups[NextIndex].interactable = true;
+                }
+            }
+        }
+        if (StackIndex != 6 - Floor)
+        {
+            if (Cups[Originalindex + 1].GetComponent<Image>().sprite.name != "Blank")
+            {
+                int NextIndex = Originalindex + (6 - Floor) + 1;
+                if (false == Cups[NextIndex].interactable)
+                {
+                    ++ActiveCups;
+                    Cups[NextIndex].interactable = true;
+                }
+            }
+            //우측체크
+        }
     }
 
     public void SelectBol()
@@ -58,7 +104,6 @@ public class CupManager : MonoBehaviour
                 break;
             }
         }
-        Debug.Log("Bol Selected : " + ChangeImageIndex);
     }
 
     public void UseBol()
@@ -71,32 +116,42 @@ public class CupManager : MonoBehaviour
         }
 
         UsableCups[SelectIndex].GetComponent<Image>().sprite = Atlas.GetSprite("Blank");
+
+        Vector2 criterion = UsableCups[0].GetComponent<RectTransform>().anchoredPosition;
         for (int i = SelectIndex + 1; i <= MAXUSABLEINDEX; ++i)
         {
-            string Temp = UsableCups[i].GetComponent<Image>().sprite.name;
-            string Src = UsableCups[i].GetComponent<Image>().sprite.name;
             (UsableCups[i], UsableCups[i - 1]) = (UsableCups[i - 1], UsableCups[i]);
         }
 
+        for (int i = SelectIndex; i <= MAXUSABLEINDEX; ++i)
+        {
+            UsableCups[i].GetComponent<RectTransform>().anchoredPosition = new Vector2(criterion.x + GAP * i, criterion.y);
+        }
+
+
         --Remain;
+        --ActiveCups;
         SelectIndex = -1;
-        Debug.Log($"Remain bol : {Remain}");
         UsableCups[Remain].interactable = false;
     }
 
-    private int CheckFloor(int Index) // 인덱스로 층 체크하기
+    private int CheckFloor(ref int Index) // 인덱스로 층 체크하기
     {
-        if (Index == 27)
-            return 6;
-        for (int i = 7; i < 1; --i)
+        if (Index == MAXCUPINDEX)
         {
-            Index -= i;
-            if (Index < 0)
+            Index = 0;
+            return 6;
+        }
+        for (int i = 7; i >= 1; --i)
+        {
+            if (Index < i)
+            {
                 return 7 - i;
+            }
+            Index -= i;
         }
 
         Debug.Log("FloorCheck Error!");
-
         return -1;
     }
 }
