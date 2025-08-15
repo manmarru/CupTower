@@ -76,7 +76,7 @@ public class CupManager : MonoBehaviour
                 }
             }
         }
-        if (StackIndex != 6 - Floor)
+        if (StackIndex != 6 - Floor) //우측
         {
             if (Cups[Originalindex + 1].GetComponent<Image>().sprite.name != "Blank")
             {
@@ -87,7 +87,6 @@ public class CupManager : MonoBehaviour
                     Cups[NextIndex].interactable = true;
                 }
             }
-            //우측체크
         }
     }
 
