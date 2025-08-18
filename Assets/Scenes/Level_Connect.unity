@@ -430,6 +430,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_StopLoop: 0
+  RecvBuffer: 
+  SendBuffer: 
 --- !u!4 &1198296474
 Transform:
   m_ObjectHideFlags: 0

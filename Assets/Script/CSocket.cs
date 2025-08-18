@@ -1,7 +1,9 @@
 using System;
+using System.Buffers.Binary;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using Unity.Android.Types;
 using UnityEngine;
 
 
@@ -20,22 +22,13 @@ public struct PACKET
 
 public class CSocket : MonoBehaviour
 {
-    public const int HEADERSIZE = 4;
+    public const int HEADERSIZE_DEFAULT = 8;
+    public const int DATASIZE_GAMEACT = 8;
 
-    static Socket m_Client;
+    public static Socket m_Client;
     public bool m_StopLoop = false;
     byte[] RecvBuffer = new byte[512];
     byte[] SendBuffer = new byte[512];
-
-    void Start()
-    {
-
-    }
-
-    void Update()
-    {
-
-    }
 
     public void Connecting(string Address)
     {
@@ -48,57 +41,65 @@ public class CSocket : MonoBehaviour
         Debug.Log(Message);
     }
 
-    public void RecvMessage()
+    public void RecvMessage(ref PACKET packet)
     {
-        DATATYPE Type = new DATATYPE();
-        while (m_StopLoop == false)
-        {
-            if (false == Recv(HEADERSIZE, RecvBuffer)) // 타입
-                return;
-            Type = (DATATYPE)BitConverter.ToInt32(RecvBuffer, 0);
-            System.Console.WriteLine(Type);
+        if (false == Recv(4, RecvBuffer)) // 타입
+            return;
+        packet.Type = (DATATYPE)BinaryPrimitives.ReadInt32BigEndian(RecvBuffer);
+        Debug.Log(packet.Type);
 
-            if (false == Recv(4, RecvBuffer)) // 사이즈
-                return;
-            int DataSize = BitConverter.ToInt32(RecvBuffer, 0);
-            System.Console.WriteLine(DataSize);
+        if (false == Recv(4, RecvBuffer)) // 사이즈
+            return;
+        packet.DataSize = BinaryPrimitives.ReadInt32BigEndian(RecvBuffer);
+        Debug.Log(packet.DataSize);
 
-            if (false == Recv(DataSize, RecvBuffer)) // 데이터
-                return;
+        if (false == Recv(packet.DataSize, packet.Data)) // 데이터
+            return;
 
-            switch (Type)
-            {
-                case DATATYPE.DATATYPE_CHAT:
-                    {
-                        string Message = Encoding.UTF8.GetString(RecvBuffer, 0, DataSize);
-                        System.Console.WriteLine(Message);
-                        break;
-                    }
-                case DATATYPE.DATATYPE_GAME:
-                    {
-                        int GameAct = BitConverter.ToInt32(RecvBuffer, 0);
-                        System.Console.WriteLine($"GameAct : {GameAct}");
-                        break;
-                    }
-                default:
-                    System.Console.WriteLine("데이터 타입 오류!");
-                    return;
-            }
-        }
+
+        //여기서부터 코드를 외부로 옮겨야한다.
+
+
+        // switch (packet.Type)
+        // {
+        //     case DATATYPE.DATATYPE_CHAT:
+        //         {
+        //             string Message = Encoding.UTF8.GetString(RecvBuffer, 0, packet.DataSize);
+        //             System.Console.WriteLine(Message);
+        //             break;
+        //         }
+        //     case DATATYPE.DATATYPE_GAME:
+        //         {
+        //             int CupPos = BinaryPrimitives.ReadInt32BigEndian(RecvBuffer);
+        //             int GameAct = BinaryPrimitives.ReadInt32BigEndian(RecvBuffer.AsSpan(4, 4));
+        //             Debug.Log($"CupPos : {CupPos}\nGameAct : {GameAct}");
+        //             break;
+        //         }
+        //     default:
+        //         Debug.Log("데이터 타입 오류!");
+        //         return;
+        // }
     }
 
     public void SendMessage(PACKET packet)
     {
-        // DataType
-        byte[] typeBytes = BitConverter.GetBytes((int)packet.Type);
-        m_Client.Send(typeBytes, 0, 4, SocketFlags.None);
+        BinaryPrimitives.WriteInt32BigEndian(SendBuffer.AsSpan(0, 4), (int)packet.Type);
+        BinaryPrimitives.WriteInt32BigEndian(SendBuffer.AsSpan(4, 4), packet.DataSize);
+        Buffer.BlockCopy(packet.Data, 0, SendBuffer, HEADERSIZE_DEFAULT, packet.DataSize);
 
-        // DataSize
-        byte[] sizeBytes = BitConverter.GetBytes(packet.DataSize);
-        m_Client.Send(sizeBytes, 0, 4, SocketFlags.None);
+        int SendedSize = 0;
+        int TotalSize = HEADERSIZE_DEFAULT + packet.DataSize;
 
-        // Data
-        m_Client.Send(packet.Data, 0, packet.DataSize, SocketFlags.None);
+        while (SendedSize < TotalSize)
+        {
+            int send = m_Client.Send(SendBuffer, SendedSize, TotalSize - SendedSize, SocketFlags.None);
+            if (send <= 0)
+            {
+                Debug.Log("Disconnected While Calling SendMessage");
+                return;
+            }
+            SendedSize += send;
+        }
     }
 
     public bool Recv(int DataSize, byte[] ReturnData)
