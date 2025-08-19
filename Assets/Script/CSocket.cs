@@ -2,15 +2,14 @@ using System;
 using System.Buffers.Binary;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
-using Unity.Android.Types;
 using UnityEngine;
 
 
 public enum DATATYPE
 {
     DATATYPE_CHAT,
-    DATATYPE_GAME
+    DATATYPE_GAME,
+    DATATYPE_TURN
 }
 
 public struct PACKET
@@ -26,9 +25,15 @@ public class CSocket : MonoBehaviour
     public const int DATASIZE_GAMEACT = 8;
 
     public static Socket m_Client;
+    private static int UserNum;
     public bool m_StopLoop = false;
     byte[] RecvBuffer = new byte[512];
     byte[] SendBuffer = new byte[512];
+
+    public int GetUserNum()
+    {
+        return UserNum;
+    }
 
     public void Connecting(string Address)
     {
@@ -37,8 +42,9 @@ public class CSocket : MonoBehaviour
         m_Client.Connect(new IPEndPoint(IPAddress.Parse(Address), 8000));
 
         Recv(4, RecvBuffer);
-        int Message = BitConverter.ToInt32(RecvBuffer, 0); // 입장메시지 받기
-        Debug.Log(Message);
+        UserNum = BitConverter.ToInt32(RecvBuffer, 0); // 입장메시지 받기
+
+        Debug.Log($"UserNum{UserNum}");
     }
 
     public void RecvMessage(ref PACKET packet)
@@ -55,30 +61,6 @@ public class CSocket : MonoBehaviour
 
         if (false == Recv(packet.DataSize, packet.Data)) // 데이터
             return;
-
-
-        //여기서부터 코드를 외부로 옮겨야한다.
-
-
-        // switch (packet.Type)
-        // {
-        //     case DATATYPE.DATATYPE_CHAT:
-        //         {
-        //             string Message = Encoding.UTF8.GetString(RecvBuffer, 0, packet.DataSize);
-        //             System.Console.WriteLine(Message);
-        //             break;
-        //         }
-        //     case DATATYPE.DATATYPE_GAME:
-        //         {
-        //             int CupPos = BinaryPrimitives.ReadInt32BigEndian(RecvBuffer);
-        //             int GameAct = BinaryPrimitives.ReadInt32BigEndian(RecvBuffer.AsSpan(4, 4));
-        //             Debug.Log($"CupPos : {CupPos}\nGameAct : {GameAct}");
-        //             break;
-        //         }
-        //     default:
-        //         Debug.Log("데이터 타입 오류!");
-        //         return;
-        // }
     }
 
     public void SendMessage(PACKET packet)

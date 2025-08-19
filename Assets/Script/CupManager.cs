@@ -3,6 +3,7 @@ using System.Buffers.Binary;
 using System.Text;
 using System.Threading;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.EventSystems;
 using UnityEngine.U2D;
 using UnityEngine.UI;
@@ -12,6 +13,7 @@ public class CupManager : MonoBehaviour
     private const int MAXCUPINDEX = 27;
     private const int MAXUSABLEINDEX = 11;
     private const int GAP = 55;
+    private int[] FloorFirstIndex = { 0, 7, 13, 18, 22, 25, 27 };
 
     public Button[] Cups;
     public Button[] UsableCups;
@@ -29,9 +31,14 @@ public class CupManager : MonoBehaviour
     private int ActiveCups = 7;
     private int SelectIndex = -1; // 하단 버튼 선택
     private bool m_StopLoop = false;
+    private bool m_Myturn = false;
 
     void Start()
     {
+        if (m_Socket.GetUserNum() == 0)
+        {
+            m_Myturn = true;
+        }
         m_SendPacket.Data = new byte[512];
         m_RecvPacket.Data = new byte[512];
 
@@ -40,7 +47,8 @@ public class CupManager : MonoBehaviour
         RecvThread.Start();
 
         //for debug
-        Debug.Log(Remain);
+        Debug.Log($"Remain : {Remain}");
+        
         for (int i = 0; i < 7; ++i)
         {
             Cups[i].interactable = true;
@@ -83,15 +91,20 @@ public class CupManager : MonoBehaviour
         if (false == UseBol(StackIndex))
             return;
 
-        //cups 원소들의 인덱스가 바뀌어버린다.
+        //Usablecups 원소들의 인덱스가 바뀌어버린다.
 
         SelectIndex = -1;
     }
 
     public void SelectBol()
     {
+        if (false == m_Myturn)
+        {
+            SelectIndex = -1;
+            return;
+        }
         //선택한 버튼의 인덱스를 저장하기
-        GameObject selectButton = EventSystem.current.currentSelectedGameObject;
+            GameObject selectButton = EventSystem.current.currentSelectedGameObject;
         for (int i = 0; i < Remain; ++i)
         {
             if (UsableCups[i].gameObject == selectButton)
@@ -111,6 +124,26 @@ public class CupManager : MonoBehaviour
             Debug.Log("UseBol Failed : No Remaining!");
             return false;
         }
+
+        if (StackIndex >= FloorFirstIndex[1])
+        {
+            // 입력 유효성 체크
+            int FloorIndex = StackIndex;
+            int Floor = CheckFloor(ref FloorIndex);
+
+            string CheckSelect = Cups[SelectIndex].GetComponent<StackCup>().GetName();
+            string CheckLeft = Cups[FloorFirstIndex[Floor - 1] + FloorIndex].GetComponent<StackCup>().GetName();
+            string CheckRight = Cups[FloorFirstIndex[Floor - 1] + FloorIndex + 1].GetComponent<StackCup>().GetName();
+            if (CheckLeft != CheckRight)
+            {
+                return false;
+            }
+            if (CheckSelect != CheckLeft)
+            {   
+                return false;
+            }
+        }
+        
 
         m_SendPacket.Type = DATATYPE.DATATYPE_GAME;
         m_SendPacket.DataSize = CSocket.HEADERSIZE_DEFAULT + 8;
@@ -180,6 +213,19 @@ public class CupManager : MonoBehaviour
                         PauseEvent.WaitOne(); // 쓰레드 멈춤
                         break;
                     }
+                case DATATYPE.DATATYPE_TURN:
+                    {
+                        int TurnNum = BinaryPrimitives.ReadInt32BigEndian(m_RecvPacket.Data);
+                        if (m_Socket.GetUserNum() == TurnNum)
+                        {
+                            m_Myturn = true;
+                        }
+                        else
+                        {
+                            m_Myturn = false;
+                        }
+                        break;
+                    }
                 default:
                     {
                         Debug.Log("DATATYPE Error!");
@@ -199,6 +245,7 @@ public class CupManager : MonoBehaviour
         Button Cup = Cups[CupPos];
         Image ThisImage = Cup.GetComponent<Image>();
         ThisImage.sprite = Atlas.GetSprite(GameAct.ToString());
+        Cups[CupPos].GetComponent<StackCup>().SetName(GameAct.ToString());
 
         int Originalindex = CupPos;
         int Floor = CheckFloor(ref CupPos);
