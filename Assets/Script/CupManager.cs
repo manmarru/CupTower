@@ -1,5 +1,6 @@
 using System;
 using System.Buffers.Binary;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using UnityEngine;
@@ -13,6 +14,8 @@ public class CupManager : MonoBehaviour
     private const int MAXCUPINDEX = 27;
     private const int MAXUSABLEINDEX = 11;
     private const int GAP = 55;
+    private const float TURNTIME = 30f;
+    private float m_CurrentTurnTime = TURNTIME;
     private int[] FloorFirstIndex = { 0, 7, 13, 18, 22, 25, 27 };
 
     public Button[] Cups;
@@ -27,9 +30,9 @@ public class CupManager : MonoBehaviour
     static ManualResetEvent PauseEvent = new ManualResetEvent(true);
     private bool m_Toggle = false;
 
-    private int Remain = MAXUSABLEINDEX + 1;
-    private int ActiveCups = 7;
-    private int SelectIndex = -1; // 하단 버튼 선택
+    private int m_Remain = MAXUSABLEINDEX + 1;
+    private int m_ActiveCups = 7;
+    private int m_SelectIndex = -1; // 하단 버튼 선택
     private bool m_StopLoop = false;
     private bool m_Myturn = false;
 
@@ -47,8 +50,8 @@ public class CupManager : MonoBehaviour
         RecvThread.Start();
 
         //for debug
-        Debug.Log($"Remain : {Remain}");
-        
+        Debug.Log($"Remain : {m_Remain}");
+
         for (int i = 0; i < 7; ++i)
         {
             Cups[i].interactable = true;
@@ -62,6 +65,11 @@ public class CupManager : MonoBehaviour
     }
     void Update()
     {
+        m_CurrentTurnTime -= Time.deltaTime;
+        if (m_CurrentTurnTime < 0)
+        {
+
+        }
         if (true == m_Toggle)
         {
             StackCup();
@@ -72,7 +80,7 @@ public class CupManager : MonoBehaviour
 
     public void ChangeImage()
     {
-        if (SelectIndex == -1)
+        if (m_SelectIndex == -1)
             return;
         GameObject ClickedButton = EventSystem.current.currentSelectedGameObject;
 
@@ -93,23 +101,23 @@ public class CupManager : MonoBehaviour
 
         //Usablecups 원소들의 인덱스가 바뀌어버린다.
 
-        SelectIndex = -1;
+        m_SelectIndex = -1;
     }
 
     public void SelectBol()
     {
         if (false == m_Myturn)
         {
-            SelectIndex = -1;
+            m_SelectIndex = -1;
             return;
         }
         //선택한 버튼의 인덱스를 저장하기
-            GameObject selectButton = EventSystem.current.currentSelectedGameObject;
-        for (int i = 0; i < Remain; ++i)
+        GameObject selectButton = EventSystem.current.currentSelectedGameObject;
+        for (int i = 0; i < m_Remain; ++i)
         {
             if (UsableCups[i].gameObject == selectButton)
             {
-                SelectIndex = i;
+                m_SelectIndex = i;
                 ChangeImageIndex = selectButton.GetComponent<Image>().sprite.name;
                 break;
             }
@@ -119,7 +127,7 @@ public class CupManager : MonoBehaviour
     public bool UseBol(int StackIndex)
     {
         //선택하고 있었던 버튼을 맨 뒤로 보내고 디폴트 이미지로 전환
-        if (Remain <= 0)
+        if (m_Remain <= 0)
         {
             Debug.Log("UseBol Failed : No Remaining!");
             return false;
@@ -131,7 +139,7 @@ public class CupManager : MonoBehaviour
             int FloorIndex = StackIndex;
             int Floor = CheckFloor(ref FloorIndex);
 
-            string CheckSelect = Cups[SelectIndex].GetComponent<StackCup>().GetName();
+            string CheckSelect = Cups[m_SelectIndex].GetComponent<StackCup>().GetName();
             string CheckLeft = Cups[FloorFirstIndex[Floor - 1] + FloorIndex].GetComponent<StackCup>().GetName();
             string CheckRight = Cups[FloorFirstIndex[Floor - 1] + FloorIndex + 1].GetComponent<StackCup>().GetName();
             if (CheckLeft != CheckRight)
@@ -139,36 +147,36 @@ public class CupManager : MonoBehaviour
                 return false;
             }
             if (CheckSelect != CheckLeft)
-            {   
+            {
                 return false;
             }
         }
-        
+
 
         m_SendPacket.Type = DATATYPE.DATATYPE_GAME;
         m_SendPacket.DataSize = CSocket.HEADERSIZE_DEFAULT + 8;
         BinaryPrimitives.WriteInt32BigEndian(m_SendPacket.Data.AsSpan(0, 4), StackIndex);
         //Debug.Log(UsableCups[SelectIndex].GetComponent<Image>().sprite.name);
-        BinaryPrimitives.WriteInt32BigEndian(m_SendPacket.Data.AsSpan(4, 4), int.Parse(UsableCups[SelectIndex].GetComponent<Image>().sprite.name));
+        BinaryPrimitives.WriteInt32BigEndian(m_SendPacket.Data.AsSpan(4, 4), int.Parse(UsableCups[m_SelectIndex].GetComponent<Image>().sprite.name));
         m_Socket.SendMessage(m_SendPacket);
 
 
-        UsableCups[SelectIndex].GetComponent<Image>().sprite = Atlas.GetSprite("Blank");
+        UsableCups[m_SelectIndex].GetComponent<Image>().sprite = Atlas.GetSprite("Blank");
 
         Vector2 criterion = UsableCups[0].GetComponent<RectTransform>().anchoredPosition;
-        for (int i = SelectIndex + 1; i <= MAXUSABLEINDEX; ++i)
+        for (int i = m_SelectIndex + 1; i <= MAXUSABLEINDEX; ++i)
         {
             (UsableCups[i], UsableCups[i - 1]) = (UsableCups[i - 1], UsableCups[i]);
         }
 
-        for (int i = SelectIndex; i <= MAXUSABLEINDEX; ++i)
+        for (int i = m_SelectIndex; i <= MAXUSABLEINDEX; ++i)
         {
             UsableCups[i].GetComponent<RectTransform>().anchoredPosition = new Vector2(criterion.x + GAP * i, criterion.y);
         }
 
 
-        --Remain;
-        --ActiveCups;
+        --m_Remain;
+        --m_ActiveCups;
         return true;
     }
 
@@ -260,7 +268,7 @@ public class CupManager : MonoBehaviour
                 int NextIndex = Originalindex + (6 - Floor);
                 if (false == Cups[NextIndex].interactable)
                 {
-                    ++ActiveCups;
+                    ++m_ActiveCups;
                     Cups[NextIndex].interactable = true;
                 }
             }
@@ -272,10 +280,20 @@ public class CupManager : MonoBehaviour
                 int NextIndex = Originalindex + (6 - Floor) + 1;
                 if (false == Cups[NextIndex].interactable)
                 {
-                    ++ActiveCups;
+                    ++m_ActiveCups;
                     Cups[NextIndex].interactable = true;
                 }
             }
         }
+    }
+
+    public void SkipTurn()
+    {
+        m_SendPacket.Type = DATATYPE.DATATYPE_TURN;
+        m_SendPacket.DataSize = CSocket.HEADERSIZE_DEFAULT;
+        m_SendPacket.Data = new byte[0];
+        m_Socket.SendMessage(m_SendPacket);
+        m_CurrentTurnTime = TURNTIME;
+        m_Myturn = false;
     }
 }
