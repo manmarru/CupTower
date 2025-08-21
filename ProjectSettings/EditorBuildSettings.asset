@@ -12,6 +12,9 @@ EditorBuildSettings:
     path: Assets/Scenes/Level_Connect.unity
     guid: b6dc7f833c4f6ad49b945b6f2dd31ed4
   - enabled: 1
+    path: Assets/Scenes/Level_Matching.unity
+    guid: d04dfa78cd5996e41b210c283724429f
+  - enabled: 1
     path: Assets/Scenes/MainGame.unity
     guid: b0949cdbd653400489398d70646d922d
   m_configObjects:

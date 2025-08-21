@@ -4,32 +4,30 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using UnityEngine;
-using UnityEngine.AI;
 using UnityEngine.EventSystems;
 using UnityEngine.U2D;
 using UnityEngine.UI;
 
 public class CupManager : MonoBehaviour
 {
+    private int[] FloorFirstIndex = { 0, 7, 13, 18, 22, 25, 27 };
     private const int MAXCUPINDEX = 27;
     private const int MAXUSABLEINDEX = 11;
     private const int GAP = 55;
-    private const float TURNTIME = 30f;
-    private float m_CurrentTurnTime = TURNTIME;
-    private int[] FloorFirstIndex = { 0, 7, 13, 18, 22, 25, 27 };
 
+    public TextManager m_TextManager;
+    public SpriteAtlas Atlas;
     public Button[] Cups;
     public Button[] UsableCups;
-
-    public SpriteAtlas Atlas;
-    public string ChangeImageIndex = "2";
 
     public CSocket m_Socket;
     private PACKET m_SendPacket = new PACKET();
     private PACKET m_RecvPacket = new PACKET();
     static ManualResetEvent PauseEvent = new ManualResetEvent(true);
-    private bool m_Toggle = false;
 
+    public string ChangeImageIndex = "2";
+
+    private bool m_Toggle = false;
     private int m_Remain = MAXUSABLEINDEX + 1;
     private int m_ActiveCups = 7;
     private int m_SelectIndex = -1; // 하단 버튼 선택
@@ -63,13 +61,14 @@ public class CupManager : MonoBehaviour
             UsableCups[i].GetComponent<RectTransform>().anchoredPosition = new Vector2(criterion.x + GAP * i, criterion.y);
         }
     }
+    
     void Update()
     {
-        m_CurrentTurnTime -= Time.deltaTime;
-        if (m_CurrentTurnTime < 0)
+        if (true == m_TextManager.m_TimeOut)
         {
-
+            SkipTurn();
         }
+
         if (true == m_Toggle)
         {
             StackCup();
@@ -177,6 +176,18 @@ public class CupManager : MonoBehaviour
 
         --m_Remain;
         --m_ActiveCups;
+
+        if (m_Remain == 0)
+        {
+            m_SendPacket.Type = DATATYPE.DATATYPE_GAMESET;
+            m_SendPacket.DataSize = CSocket.DATASIZE_NODATA;
+            m_Socket.SendMessage(m_SendPacket);
+        }
+        /*
+
+
+
+        */
         return true;
     }
 
@@ -227,11 +238,22 @@ public class CupManager : MonoBehaviour
                         if (m_Socket.GetUserNum() == TurnNum)
                         {
                             m_Myturn = true;
+                            m_TextManager.StartTurn();
                         }
                         else
                         {
                             m_Myturn = false;
+                            m_TextManager.TurnPlayer = TurnNum.ToString();
+                            m_TextManager.EndTurn();
+                            Debug.Log($"Player {TurnNum} Turn");
                         }
+                        break;
+                    }
+                case DATATYPE.DATATYPE_ENDGAME:
+                    {
+                        m_StopLoop = true;
+                        m_Socket.Shutdown();
+                        m_Socket.Release();
                         break;
                     }
                 default:
@@ -291,9 +313,8 @@ public class CupManager : MonoBehaviour
     {
         m_SendPacket.Type = DATATYPE.DATATYPE_TURN;
         m_SendPacket.DataSize = CSocket.HEADERSIZE_DEFAULT;
-        m_SendPacket.Data = new byte[0];
         m_Socket.SendMessage(m_SendPacket);
-        m_CurrentTurnTime = TURNTIME;
+        m_TextManager.EndTurn();
         m_Myturn = false;
     }
 }

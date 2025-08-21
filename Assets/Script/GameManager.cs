@@ -3,7 +3,7 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
-    private int CurScene = 0;
+    static int CurScene = 0;
     void Start()
     {
 
@@ -17,8 +17,19 @@ public class GameManager : MonoBehaviour
     public void SceneMove(int Scene)
     {
         if (CurScene == Scene)
+        {
+            Debug.Log("Same Scene!");
             return;
+        }
+            
         CurScene = Scene;
+        Debug.Log($"Move To {Scene}");
         SceneManager.LoadScene(Scene);
+    }
+    public void NextScene()
+    {
+        ++CurScene;
+        Debug.Log($"Move To {CurScene}");
+        SceneManager.LoadScene(CurScene);
     }
 }

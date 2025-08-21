@@ -9,7 +9,9 @@ public enum DATATYPE
 {
     DATATYPE_CHAT,
     DATATYPE_GAME,
-    DATATYPE_TURN
+    DATATYPE_TURN,
+    DATATYPE_ENDGAME,
+    DATATYPE_GAMESET
 }
 
 public struct PACKET
@@ -23,12 +25,13 @@ public class CSocket : MonoBehaviour
 {
     public const int HEADERSIZE_DEFAULT = 8;
     public const int DATASIZE_GAMEACT = 8;
+    public const int DATASIZE_NODATA = 0;
 
     public static Socket m_Client;
     private static int UserNum;
     public bool m_StopLoop = false;
-    byte[] RecvBuffer = new byte[512];
-    byte[] SendBuffer = new byte[512];
+    private byte[] RecvBuffer = new byte[512];
+    private byte[] SendBuffer = new byte[512];
 
     public int GetUserNum()
     {
@@ -39,7 +42,7 @@ public class CSocket : MonoBehaviour
     {
         Debug.Log(Address);
         m_Client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-        m_Client.Connect(new IPEndPoint(IPAddress.Parse(Address), 8000));
+        m_Client.Connect(new IPEndPoint(IPAddress.Parse(Address), 25565));
 
         Recv(4, RecvBuffer);
         UserNum = BitConverter.ToInt32(RecvBuffer, 0); // 입장메시지 받기
@@ -67,7 +70,10 @@ public class CSocket : MonoBehaviour
     {
         BinaryPrimitives.WriteInt32BigEndian(SendBuffer.AsSpan(0, 4), (int)packet.Type);
         BinaryPrimitives.WriteInt32BigEndian(SendBuffer.AsSpan(4, 4), packet.DataSize);
-        Buffer.BlockCopy(packet.Data, 0, SendBuffer, HEADERSIZE_DEFAULT, packet.DataSize);
+        if (packet.DataSize != 0)
+        {
+            Buffer.BlockCopy(packet.Data, 0, SendBuffer, HEADERSIZE_DEFAULT, packet.DataSize);
+        }
 
         int SendedSize = 0;
         int TotalSize = HEADERSIZE_DEFAULT + packet.DataSize;

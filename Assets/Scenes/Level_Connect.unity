@@ -313,8 +313,8 @@ MonoBehaviour:
         m_CallState: 2
       - m_Target: {fileID: 1616590197}
         m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-        m_MethodName: SceneMove
-        m_Mode: 3
+        m_MethodName: NextScene
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -430,8 +430,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_StopLoop: 0
-  RecvBuffer: 
-  SendBuffer: 
 --- !u!4 &1198296474
 Transform:
   m_ObjectHideFlags: 0
