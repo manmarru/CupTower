@@ -1,6 +1,5 @@
 using System;
 using System.Buffers.Binary;
-using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using UnityEngine;
@@ -27,7 +26,6 @@ public class CupManager : MonoBehaviour
 
     public string ChangeImageIndex = "2";
 
-    private bool m_Toggle = false;
     private int m_Remain = MAXUSABLEINDEX + 1;
     private int m_ActiveCups = 7;
     private int m_SelectIndex = -1; // 하단 버튼 선택
@@ -61,19 +59,12 @@ public class CupManager : MonoBehaviour
             UsableCups[i].GetComponent<RectTransform>().anchoredPosition = new Vector2(criterion.x + GAP * i, criterion.y);
         }
     }
-    
+
     void Update()
     {
         if (true == m_TextManager.m_TimeOut)
         {
             SkipTurn();
-        }
-
-        if (true == m_Toggle)
-        {
-            StackCup();
-            PauseEvent.Set();
-            m_Toggle = false;
         }
     }
 
@@ -125,7 +116,7 @@ public class CupManager : MonoBehaviour
 
     public bool UseBol(int StackIndex)
     {
-        //선택하고 있었던 버튼을 맨 뒤로 보내고 디폴트 이미지로 전환
+        //선택하고 있었던 버튼을 뒤로 보내고 디폴트 이미지로 전환
         if (m_Remain <= 0)
         {
             Debug.Log("UseBol Failed : No Remaining!");
@@ -227,9 +218,7 @@ public class CupManager : MonoBehaviour
                     }
                 case DATATYPE.DATATYPE_GAME:
                     {
-                        m_Toggle = true;
-                        PauseEvent.Reset();
-                        PauseEvent.WaitOne(); // 쓰레드 멈춤
+                        StackCup();
                         break;
                     }
                 case DATATYPE.DATATYPE_TURN:
@@ -254,6 +243,18 @@ public class CupManager : MonoBehaviour
                         m_StopLoop = true;
                         m_Socket.Shutdown();
                         m_Socket.Release();
+                        break;
+                    }
+                case DATATYPE.DATATYPE_GAMESET:
+                    {
+                        break;
+                    }
+                case DATATYPE.DATATYPE_USERINFO:
+                    {
+                        int Size_0 = BinaryPrimitives.ReadInt32BigEndian(m_RecvPacket.Data);
+                        int Size_1 = BinaryPrimitives.ReadInt32BigEndian(m_RecvPacket.Data.AsSpan(4, 4));
+                        int Size_2 = BinaryPrimitives.ReadInt32BigEndian(m_RecvPacket.Data.AsSpan(8, 4));
+                        TableSetting(Size_0, Size_1, Size_2);
                         break;
                     }
                 default:
@@ -316,5 +317,21 @@ public class CupManager : MonoBehaviour
         m_Socket.SendMessage(m_SendPacket);
         m_TextManager.EndTurn();
         m_Myturn = false;
+    }
+
+    private void TableSetting(int CupSize_0, int CupSize_1, int CupSize_2)
+    {
+        for (int i = 0; i < CupSize_0; ++i)
+        {
+            UsableCups[i].GetComponent<Image>().sprite = Atlas.GetSprite("0");
+        }
+        for (int i = 0; i < CupSize_1; ++i)
+        {
+            UsableCups[i + CupSize_0].GetComponent<Image>().sprite = Atlas.GetSprite("1");
+        }
+        for (int i = 0; i < CupSize_2; ++i)
+        {
+            UsableCups[i + CupSize_0 + CupSize_1].GetComponent<Image>().sprite = Atlas.GetSprite("2");
+        }
     }
 }

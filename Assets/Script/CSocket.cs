@@ -11,7 +11,8 @@ public enum DATATYPE
     DATATYPE_GAME,
     DATATYPE_TURN,
     DATATYPE_ENDGAME,
-    DATATYPE_GAMESET
+    DATATYPE_GAMESET,
+    DATATYPE_USERINFO
 }
 
 public struct PACKET
@@ -30,7 +31,7 @@ public class CSocket : MonoBehaviour
     public static Socket m_Client;
     private static int UserNum;
     public bool m_StopLoop = false;
-    private byte[] RecvBuffer = new byte[512];
+    private byte[] RecvBuffer = new byte[512]; // static으로 할까?
     private byte[] SendBuffer = new byte[512];
 
     public int GetUserNum()
@@ -68,25 +69,28 @@ public class CSocket : MonoBehaviour
 
     public void SendMessage(PACKET packet)
     {
-        BinaryPrimitives.WriteInt32BigEndian(SendBuffer.AsSpan(0, 4), (int)packet.Type);
-        BinaryPrimitives.WriteInt32BigEndian(SendBuffer.AsSpan(4, 4), packet.DataSize);
-        if (packet.DataSize != 0)
+        lock (SendBuffer)
         {
-            Buffer.BlockCopy(packet.Data, 0, SendBuffer, HEADERSIZE_DEFAULT, packet.DataSize);
-        }
-
-        int SendedSize = 0;
-        int TotalSize = HEADERSIZE_DEFAULT + packet.DataSize;
-
-        while (SendedSize < TotalSize)
-        {
-            int send = m_Client.Send(SendBuffer, SendedSize, TotalSize - SendedSize, SocketFlags.None);
-            if (send <= 0)
+            BinaryPrimitives.WriteInt32BigEndian(SendBuffer.AsSpan(0, 4), (int)packet.Type);
+            BinaryPrimitives.WriteInt32BigEndian(SendBuffer.AsSpan(4, 4), packet.DataSize);
+            if (packet.DataSize != 0)
             {
-                Debug.Log("Disconnected While Calling SendMessage");
-                return;
+                Buffer.BlockCopy(packet.Data, 0, SendBuffer, HEADERSIZE_DEFAULT, packet.DataSize);
             }
-            SendedSize += send;
+
+            int SendedSize = 0;
+            int TotalSize = HEADERSIZE_DEFAULT + packet.DataSize;
+
+            while (SendedSize < TotalSize)
+            {
+                int send = m_Client.Send(SendBuffer, SendedSize, TotalSize - SendedSize, SocketFlags.None);
+                if (send <= 0)
+                {
+                    Debug.Log("Disconnected While Calling SendMessage");
+                    return;
+                }
+                SendedSize += send;
+            }
         }
     }
 
