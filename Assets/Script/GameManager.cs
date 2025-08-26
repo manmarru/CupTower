@@ -23,13 +23,13 @@ public class GameManager : MonoBehaviour
         }
             
         CurScene = Scene;
-        Debug.Log($"Move To {Scene}");
+        Debug.Log($"Move To {Scene} Scene");
         SceneManager.LoadScene(Scene);
     }
     public void NextScene()
     {
         ++CurScene;
-        Debug.Log($"Move To {CurScene}");
+        Debug.Log($"Move To {CurScene} Scene");
         SceneManager.LoadScene(CurScene);
     }
 }

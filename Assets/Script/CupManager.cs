@@ -9,8 +9,8 @@ using UnityEngine.UI;
 
 public class CupManager : MonoBehaviour
 {
-    private int[] FloorFirstIndex = { 0, 7, 13, 18, 22, 25, 27 };
-    private const int MAXCUPINDEX = 27;
+    private int[] FloorFirstIndex = { 0, 8, 15, 21, 26, 30, 33, 35, 36 };
+    private const int MAXCUPINDEX = 36;
     private const int MAXUSABLEINDEX = 11;
     private const int GAP = 55;
 
@@ -25,9 +25,9 @@ public class CupManager : MonoBehaviour
     static ManualResetEvent PauseEvent = new ManualResetEvent(true);
 
     public string ChangeImageIndex = "2";
-
+    private bool m_Toggle = false;
     private int m_Remain = MAXUSABLEINDEX + 1;
-    private int m_ActiveCups = 7;
+    private int m_ActiveCups = 8;
     private int m_SelectIndex = -1; // 하단 버튼 선택
     private bool m_StopLoop = false;
     private bool m_Myturn = false;
@@ -45,10 +45,7 @@ public class CupManager : MonoBehaviour
         RecvThread.IsBackground = true;
         RecvThread.Start();
 
-        //for debug
-        Debug.Log($"Remain : {m_Remain}");
-
-        for (int i = 0; i < 7; ++i)
+        for (int i = 0; i < m_ActiveCups; ++i)
         {
             Cups[i].interactable = true;
         }
@@ -62,13 +59,31 @@ public class CupManager : MonoBehaviour
 
     void Update()
     {
-        if (true == m_TextManager.m_TimeOut)
+        if (true == m_Myturn && true == m_TextManager.m_TimeOut)
         {
             SkipTurn();
         }
+
+        if (true == m_Toggle)
+        {
+            if (m_RecvPacket.Type == DATATYPE.DATATYPE_GAME)
+            {
+                StackCup();
+            }
+            else if (m_RecvPacket.Type == DATATYPE.DATATYPE_TURN)
+            {
+                m_TextManager.StartTurn();
+            }
+            else if (m_RecvPacket.Type == DATATYPE.DATATYPE_USERINFO)
+            {
+                TableSetting();
+            }
+            m_Toggle = false;
+            PauseEvent.Set();
+        }
     }
 
-    public void ChangeImage()
+    public void GameAct()
     {
         if (m_SelectIndex == -1)
             return;
@@ -128,10 +143,14 @@ public class CupManager : MonoBehaviour
             // 입력 유효성 체크
             int FloorIndex = StackIndex;
             int Floor = CheckFloor(ref FloorIndex);
+            Debug.Log($"{Floor} Floor, {FloorIndex}th");
 
-            string CheckSelect = Cups[m_SelectIndex].GetComponent<StackCup>().GetName();
+            string CheckSelect = UsableCups[m_SelectIndex].GetComponent<Image>().sprite.name[0].ToString();
             string CheckLeft = Cups[FloorFirstIndex[Floor - 1] + FloorIndex].GetComponent<StackCup>().GetName();
             string CheckRight = Cups[FloorFirstIndex[Floor - 1] + FloorIndex + 1].GetComponent<StackCup>().GetName();
+
+            Debug.Log($"Select : {CheckSelect}, Left : {CheckLeft}, Right : {CheckRight}");
+
             if (CheckLeft != CheckRight)
             {
                 return false;
@@ -142,12 +161,11 @@ public class CupManager : MonoBehaviour
             }
         }
 
-
         m_SendPacket.Type = DATATYPE.DATATYPE_GAME;
         m_SendPacket.DataSize = CSocket.HEADERSIZE_DEFAULT + 8;
+        int spriteName = UsableCups[m_SelectIndex].GetComponent<Image>().sprite.name[0] - '0';
         BinaryPrimitives.WriteInt32BigEndian(m_SendPacket.Data.AsSpan(0, 4), StackIndex);
-        //Debug.Log(UsableCups[SelectIndex].GetComponent<Image>().sprite.name);
-        BinaryPrimitives.WriteInt32BigEndian(m_SendPacket.Data.AsSpan(4, 4), int.Parse(UsableCups[m_SelectIndex].GetComponent<Image>().sprite.name));
+        BinaryPrimitives.WriteInt32BigEndian(m_SendPacket.Data.AsSpan(4, 4), spriteName);
         m_Socket.SendMessage(m_SendPacket);
 
 
@@ -168,12 +186,12 @@ public class CupManager : MonoBehaviour
         --m_Remain;
         --m_ActiveCups;
 
-        if (m_Remain == 0)
-        {
-            m_SendPacket.Type = DATATYPE.DATATYPE_GAMESET;
-            m_SendPacket.DataSize = CSocket.DATASIZE_NODATA;
-            m_Socket.SendMessage(m_SendPacket);
-        }
+        // if (m_Remain == 0)
+        // {
+        //     m_SendPacket.Type = DATATYPE.DATATYPE_GAMESET;
+        //     m_SendPacket.DataSize = CSocket.DATASIZE_NODATA;
+        //     m_Socket.SendMessage(m_SendPacket);
+        // }
         /*
 
 
@@ -187,13 +205,13 @@ public class CupManager : MonoBehaviour
         if (Index == MAXCUPINDEX)
         {
             Index = 0;
-            return 6;
+            return 7;
         }
-        for (int i = 7; i >= 1; --i)
+        for (int i = 8; i >= 1; --i)
         {
             if (Index < i)
             {
-                return 7 - i;
+                return 8 - i;
             }
             Index -= i;
         }
@@ -207,7 +225,7 @@ public class CupManager : MonoBehaviour
         while (m_StopLoop == false)
         {
             m_Socket.RecvMessage(ref m_RecvPacket);
-
+            Debug.Log("==================================");
             switch (m_RecvPacket.Type)
             {
                 case DATATYPE.DATATYPE_CHAT:
@@ -218,7 +236,9 @@ public class CupManager : MonoBehaviour
                     }
                 case DATATYPE.DATATYPE_GAME:
                     {
-                        StackCup();
+                        m_Toggle = true;
+                        PauseEvent.Reset();
+                        PauseEvent.WaitOne(); // 쓰레드 멈춤
                         break;
                     }
                 case DATATYPE.DATATYPE_TURN:
@@ -227,7 +247,9 @@ public class CupManager : MonoBehaviour
                         if (m_Socket.GetUserNum() == TurnNum)
                         {
                             m_Myturn = true;
-                            m_TextManager.StartTurn();
+                            m_Toggle = true;
+                            PauseEvent.Reset();
+                            PauseEvent.WaitOne(); // 쓰레드 멈춤
                         }
                         else
                         {
@@ -251,10 +273,9 @@ public class CupManager : MonoBehaviour
                     }
                 case DATATYPE.DATATYPE_USERINFO:
                     {
-                        int Size_0 = BinaryPrimitives.ReadInt32BigEndian(m_RecvPacket.Data);
-                        int Size_1 = BinaryPrimitives.ReadInt32BigEndian(m_RecvPacket.Data.AsSpan(4, 4));
-                        int Size_2 = BinaryPrimitives.ReadInt32BigEndian(m_RecvPacket.Data.AsSpan(8, 4));
-                        TableSetting(Size_0, Size_1, Size_2);
+                        m_Toggle = true;
+                        PauseEvent.Reset();
+                        PauseEvent.WaitOne(); // 쓰레드 멈춤
                         break;
                     }
                 default:
@@ -288,7 +309,7 @@ public class CupManager : MonoBehaviour
         {
             if (Cups[Originalindex - 1].GetComponent<Image>().sprite.name != "Blank")
             {
-                int NextIndex = Originalindex + (6 - Floor);
+                int NextIndex = Originalindex + 7 - Floor;
                 if (false == Cups[NextIndex].interactable)
                 {
                     ++m_ActiveCups;
@@ -296,11 +317,11 @@ public class CupManager : MonoBehaviour
                 }
             }
         }
-        if (CupPos != 6 - Floor) //우측
+        if (CupPos != 7 - Floor) //우측
         {
             if (Cups[Originalindex + 1].GetComponent<Image>().sprite.name != "Blank")
             {
-                int NextIndex = Originalindex + (6 - Floor) + 1;
+                int NextIndex = Originalindex + (7 - Floor) + 1;
                 if (false == Cups[NextIndex].interactable)
                 {
                     ++m_ActiveCups;
@@ -319,11 +340,17 @@ public class CupManager : MonoBehaviour
         m_Myturn = false;
     }
 
-    private void TableSetting(int CupSize_0, int CupSize_1, int CupSize_2)
+    private void TableSetting()
     {
+        int CupSize_0 = BinaryPrimitives.ReadInt32BigEndian(m_RecvPacket.Data);
+        int CupSize_1 = BinaryPrimitives.ReadInt32BigEndian(m_RecvPacket.Data.AsSpan(4, 4));
+        int CupSize_2 = BinaryPrimitives.ReadInt32BigEndian(m_RecvPacket.Data.AsSpan(8, 4));
+        Debug.Log($"0 : {CupSize_0}, 1 : {CupSize_1}, 2  : {CupSize_2}");
+
         for (int i = 0; i < CupSize_0; ++i)
         {
             UsableCups[i].GetComponent<Image>().sprite = Atlas.GetSprite("0");
+
         }
         for (int i = 0; i < CupSize_1; ++i)
         {

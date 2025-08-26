@@ -29,6 +29,7 @@ public class TextManager : MonoBehaviour
     public void EndTurn()
     {
         m_TimeOut = true;
+        m_CurrentTurnTime = TURNTIME;
         Timer.enabled = false;
         TurnChecker.text = $"Player {TurnPlayer}'s Turn";
     }

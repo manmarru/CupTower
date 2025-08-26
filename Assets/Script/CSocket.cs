@@ -56,12 +56,11 @@ public class CSocket : MonoBehaviour
         if (false == Recv(4, RecvBuffer)) // 타입
             return;
         packet.Type = (DATATYPE)BinaryPrimitives.ReadInt32BigEndian(RecvBuffer);
-        Debug.Log(packet.Type);
 
         if (false == Recv(4, RecvBuffer)) // 사이즈
             return;
         packet.DataSize = BinaryPrimitives.ReadInt32BigEndian(RecvBuffer);
-        Debug.Log(packet.DataSize);
+        Debug.Log($"Type : {packet.Type}, Size : {packet.DataSize}");
 
         if (false == Recv(packet.DataSize, packet.Data)) // 데이터
             return;

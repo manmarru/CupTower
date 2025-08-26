@@ -1,3 +1,4 @@
+using System.Buffers.Binary;
 using System.Threading;
 using UnityEngine;
 
@@ -26,7 +27,15 @@ public class Level_Matching : MonoBehaviour
     private void WaitForUser()
     {
         byte[] RecvData = new byte[4];
-        m_Mached = m_Socket.Recv(4, RecvData); // 999를 받기는 할건데 안 씀
-        Debug.Log(true == m_Mached ? "Matched" : "MatchingSign Error?");
+        m_Socket.Recv(4, RecvData); // 999를 받기는 할건데 수신 여부만 체크
+        if (BinaryPrimitives.ReadInt32BigEndian(RecvData) == 999)
+        {
+            Debug.Log("Matched");
+            m_Mached = true;
+        }
+        else
+        {
+            Debug.Log("MatchingSign Error?");
+        }
     }
 }
