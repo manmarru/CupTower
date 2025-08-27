@@ -3,7 +3,6 @@ using System.Buffers.Binary;
 using System.Text;
 using System.Threading;
 using TMPro;
-using Unity.Android.Gradle.Manifest;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.U2D;
@@ -96,7 +95,17 @@ public class CupManager : MonoBehaviour
                     }
                 case DATATYPE.DATATYPE_ENDGAME:
                     {
-                        m_EndText.enabled = true;
+                        int winner = BinaryPrimitives.ReadInt32BigEndian(m_RecvPacket.Data);
+                        if (m_Socket.GetUserNum() == winner)
+                        {
+                            Debug.Log("You Are Winner!");
+                            m_TextManager.EndText(true);
+                        }
+                        else
+                        {
+                            Debug.Log("You Are Loser!");
+                            m_TextManager.EndText(false);
+                        }
                         break;
                     }
             }
@@ -292,7 +301,9 @@ public class CupManager : MonoBehaviour
                     }
                 case DATATYPE.DATATYPE_ENDGAME:
                     {
-                        m_StopLoop = true;
+                        m_Toggle = true;
+                        m_StopLoop = true; // 쓰레드 끌거라 멈출 필요 없음
+
                         m_SendPacket.Type = DATATYPE.DATATYPE_ENDGAME;
                         m_SendPacket.DataSize = CSocket.DATASIZE_NODATA;
                         m_Socket.SendMessage(m_SendPacket);

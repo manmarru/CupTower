@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using TMPro;
 using UnityEngine;
 
@@ -8,6 +9,7 @@ public class TextManager : MonoBehaviour
     public TextMeshProUGUI Timer;
     public TextMeshProUGUI TurnChecker;
     public TextMeshProUGUI m_RoundText;
+    public TextMeshProUGUI m_EndText;
 
     public bool m_TimeOut = true;
     public string TurnPlayer = "0";
@@ -15,10 +17,15 @@ public class TextManager : MonoBehaviour
     private bool m_Toggle = false;
     private bool TurnCheck;
     private float m_CurrentTurnTime;
-
+    private bool m_Pause;
 
     void Update()
     {
+        if (true == m_Pause)
+        {
+            return;
+        }
+
         Update_Timer();
         if (true == m_Toggle)
         {
@@ -65,5 +72,14 @@ public class TextManager : MonoBehaviour
     public void SetRoundText(int round)
     {
         m_RoundText.text = $"Round {round}";
+    }
+
+    public void EndText(bool Win)
+    {
+        m_EndText.text = Win == true ? "You Win!" : " You Loose!";
+        m_EndText.gameObject.SetActive(true);
+        TurnChecker.gameObject.SetActive(false);
+
+        m_Pause = true;
     }
 }
