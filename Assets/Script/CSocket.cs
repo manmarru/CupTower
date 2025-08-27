@@ -76,7 +76,6 @@ public class CSocket : MonoBehaviour
             {
                 Buffer.BlockCopy(packet.Data, 0, SendBuffer, HEADERSIZE_DEFAULT, packet.DataSize);
             }
-
             int SendedSize = 0;
             int TotalSize = HEADERSIZE_DEFAULT + packet.DataSize;
 
@@ -113,7 +112,7 @@ public class CSocket : MonoBehaviour
         m_Client.Shutdown(SocketShutdown.Both);
     }
 
-    public void Release()
+    public void Close()
     {
         m_Client.Close();
     }

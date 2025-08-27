@@ -2,7 +2,8 @@ using System;
 using System.Buffers.Binary;
 using System.Text;
 using System.Threading;
-using Unity.Mathematics;
+using TMPro;
+using Unity.Android.Gradle.Manifest;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.U2D;
@@ -10,12 +11,15 @@ using UnityEngine.UI;
 
 public class CupManager : MonoBehaviour
 {
+    enum DATA { DATA_UNACTABLE, DATA_SKIPTURN };
     private int[] FloorFirstIndex = { 0, 8, 15, 21, 26, 30, 33, 35, 36 };
     private const int MAXCUPINDEX = 36;
     private const int MAXUSABLEINDEX = 11;
     private const int GAP = 55;
+    private const int BLANK = 5;
 
     public TextManager m_TextManager;
+    public TextMeshProUGUI m_EndText;
     public SpriteAtlas Atlas;
     public Button[] Cups;
     public Button[] UsableCups;
@@ -60,28 +64,41 @@ public class CupManager : MonoBehaviour
         }
 
         m_Actables[0] = m_Actables[1] = m_Actables[2] = FloorFirstIndex[1];
+        m_TextManager.SetRoundText(1);
     }
 
     void Update()
     {
         if (true == m_Myturn && true == m_TextManager.m_TimeOut)
         {
-            SkipTurn();
+            Debug.Log("TimeOut!");
+            SkipTurn(true);
         }
 
         if (true == m_Toggle)
         {
-            if (m_RecvPacket.Type == DATATYPE.DATATYPE_GAME)
+            switch (m_RecvPacket.Type)
             {
-                StackCup();
-            }
-            else if (m_RecvPacket.Type == DATATYPE.DATATYPE_TURN)
-            {
-                m_TextManager.StartTurn();
-            }
-            else if (m_RecvPacket.Type == DATATYPE.DATATYPE_USERINFO)
-            {
-                TableSetting();
+                case DATATYPE.DATATYPE_GAME:
+                    {
+                        StackCup();
+                        break;
+                    }
+                case DATATYPE.DATATYPE_TURN:
+                    {
+                        m_TextManager.StartTurn();
+                        break;
+                    }
+                case DATATYPE.DATATYPE_USERINFO:
+                    {
+                        TableSetting();
+                        break;
+                    }
+                case DATATYPE.DATATYPE_ENDGAME:
+                    {
+                        m_EndText.enabled = true;
+                        break;
+                    }
             }
             m_Toggle = false;
             PauseEvent.Set();
@@ -147,13 +164,10 @@ public class CupManager : MonoBehaviour
         {
             int FloorIndex = StackIndex;
             int Floor = CheckFloor(ref FloorIndex);
-            //Debug.Log($"{Floor} Floor, {FloorIndex}th");
 
             string CheckSelect = UsableCups[m_SelectIndex].GetComponent<Image>().sprite.name[0].ToString();
             string CheckLeft = Cups[FloorFirstIndex[Floor - 1] + FloorIndex].GetComponent<StackCup>().GetName();
             string CheckRight = Cups[FloorFirstIndex[Floor - 1] + FloorIndex + 1].GetComponent<StackCup>().GetName();
-
-            //Debug.Log($"Select : {CheckSelect}, Left : {CheckLeft}, Right : {CheckRight}");
 
             if (CheckLeft != CheckSelect && CheckRight != CheckSelect)
                 return false;
@@ -174,13 +188,13 @@ public class CupManager : MonoBehaviour
 
 
         m_SendPacket.Type = DATATYPE.DATATYPE_GAME;
-        m_SendPacket.DataSize = CSocket.HEADERSIZE_DEFAULT + 8;
+        m_SendPacket.DataSize = CSocket.DATASIZE_GAMEACT;
         int spriteName = UsableCups[m_SelectIndex].GetComponent<Image>().sprite.name[0] - '0';
         BinaryPrimitives.WriteInt32BigEndian(m_SendPacket.Data.AsSpan(0, 4), StackIndex);
         BinaryPrimitives.WriteInt32BigEndian(m_SendPacket.Data.AsSpan(4, 4), spriteName);
         m_Socket.SendMessage(m_SendPacket);
 
-        UsableCups[m_SelectIndex].GetComponent<Image>().sprite = Atlas.GetSprite("Blank");
+        UsableCups[m_SelectIndex].GetComponent<Image>().sprite = Atlas.GetSprite($"{BLANK}");
 
         Vector2 criterion = UsableCups[0].GetComponent<RectTransform>().anchoredPosition;
         for (int i = m_SelectIndex + 1; i <= MAXUSABLEINDEX; ++i)
@@ -256,10 +270,16 @@ public class CupManager : MonoBehaviour
                         int TurnNum = BinaryPrimitives.ReadInt32BigEndian(m_RecvPacket.Data);
                         if (m_Socket.GetUserNum() == TurnNum)
                         {
+                            if (false == ActableCheck())
+                            {
+                                Debug.Log("Unable to Act");
+                                SkipTurn(false);
+                                break;
+                            }
                             m_Myturn = true;
                             m_Toggle = true;
                             PauseEvent.Reset();
-                            PauseEvent.WaitOne(); // 쓰레드 멈춤
+                            PauseEvent.WaitOne();
                         }
                         else
                         {
@@ -273,16 +293,22 @@ public class CupManager : MonoBehaviour
                 case DATATYPE.DATATYPE_ENDGAME:
                     {
                         m_StopLoop = true;
+                        m_SendPacket.Type = DATATYPE.DATATYPE_ENDGAME;
+                        m_SendPacket.DataSize = CSocket.DATASIZE_NODATA;
+                        m_Socket.SendMessage(m_SendPacket);
                         m_Socket.Shutdown();
-                        m_Socket.Release();
-                        break;
+                        m_Socket.Close();
+                        return;
                     }
                 case DATATYPE.DATATYPE_GAMESET:
                     {
+                        Debug.Log("GameSet!");
+                        m_Toggle = true;
                         break;
                     }
                 case DATATYPE.DATATYPE_USERINFO:
                     {
+                        Debug.Log("TableSet!");
                         m_Toggle = true;
                         PauseEvent.Reset();
                         PauseEvent.WaitOne(); // 쓰레드 멈춤
@@ -302,7 +328,7 @@ public class CupManager : MonoBehaviour
     {
         int CupPos = BinaryPrimitives.ReadInt32BigEndian(m_RecvPacket.Data);
         int GameAct = BinaryPrimitives.ReadInt32BigEndian(m_RecvPacket.Data.AsSpan(4, 4));
-        Debug.Log($"\nCupPos : {CupPos}\tGameAct : {GameAct}");
+        //Debug.Log($"\nCupPos : {CupPos}\tGameAct : {GameAct}");
 
         Button Cup = Cups[CupPos];
         Image ThisImage = Cup.GetComponent<Image>();
@@ -319,7 +345,8 @@ public class CupManager : MonoBehaviour
         {
             string LeftName = Cups[Originalindex - 1].GetComponent<Image>().sprite.name;
             string CurrName = Cups[Originalindex].GetComponent<Image>().sprite.name;
-            if (LeftName != "Blank")
+            //Debug.Log($"LeftName {LeftName}, RightName {CurrName}");
+            if (LeftName[0] != '5')
             {
                 int NextIndex = Originalindex + 7 - Floor;
                 if (false == Cups[NextIndex].interactable)
@@ -338,7 +365,7 @@ public class CupManager : MonoBehaviour
         {
             string RightName = Cups[Originalindex + 1].GetComponent<Image>().sprite.name;
             string CurrName = Cups[Originalindex].GetComponent<Image>().sprite.name;
-            if (RightName != "Blank")
+            if (RightName[0] != '5')
             {
                 int NextIndex = Originalindex + (7 - Floor) + 1;
                 if (false == Cups[NextIndex].interactable)
@@ -358,10 +385,11 @@ public class CupManager : MonoBehaviour
         Debug.Log($"m_Actables0 : {m_Actables[0]}, m_Actables1 : {m_Actables[1]}, m_Actables2 : {m_Actables[2]}");
     }
 
-    public void SkipTurn()
+    public void SkipTurn(bool actable)
     {
         m_SendPacket.Type = DATATYPE.DATATYPE_TURN;
-        m_SendPacket.DataSize = CSocket.HEADERSIZE_DEFAULT;
+        m_SendPacket.DataSize = sizeof(int);
+        BinaryPrimitives.WriteInt32BigEndian(m_SendPacket.Data, actable == true? (int)DATA.DATA_SKIPTURN : (int)DATA.DATA_UNACTABLE);
         m_Socket.SendMessage(m_SendPacket);
         m_TextManager.EndTurn();
         m_Myturn = false;
@@ -386,6 +414,22 @@ public class CupManager : MonoBehaviour
         {
             UsableCups[i + m_Remains[0] + m_Remains[1]].GetComponent<Image>().sprite = Atlas.GetSprite("2");
         }
+
+
+        for (int i = 0; i < MAXCUPINDEX; ++i)
+        {
+            Cups[i].GetComponent<Image>().sprite = Atlas.GetSprite($"{BLANK}");
+            Cups[i].GetComponent<StackCup>().SetName($"{BLANK}");
+            Cups[i].interactable = false;
+        }
+
+        for (int i = 0; i < FloorFirstIndex[1]; ++i)
+        {
+            Cups[i].interactable = true;
+        }
+
+        m_Remain = MAXUSABLEINDEX + 1;
+        m_Actables[0] = m_Actables[1] = m_Actables[2] = FloorFirstIndex[1];
     }
 
     private bool ActableCheck()
@@ -393,14 +437,13 @@ public class CupManager : MonoBehaviour
         if (m_Remain == 0)
             return false;
 
-        for (int i = 0; i < FloorFirstIndex[1]; ++i)
+        if ((m_Remains[0] > 0 && m_Actables[0] > 0)
+        || (m_Remains[1] > 0 && m_Actables[1] > 0)
+        || (m_Remains[2] > 0 && m_Actables[2] > 0))
         {
-            if (Cups[i].interactable == true)
-                return true;
+            return true;
         }
 
-
-
-        return true;
+        return false;
     }
 }
