@@ -1,8 +1,10 @@
 using System;
 using System.Buffers.Binary;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.U2D;
@@ -99,12 +101,27 @@ public class CupManager : MonoBehaviour
                         if (m_Socket.GetUserNum() == winner)
                         {
                             Debug.Log("You Are Winner!");
-                            m_TextManager.EndText(true);
+                            m_TextManager.EndText(true, true);
                         }
                         else
                         {
                             Debug.Log("You Are Loser!");
-                            m_TextManager.EndText(false);
+                            m_TextManager.EndText(false, true);
+                        }
+                        break;
+                    }
+                case DATATYPE.DATATYPE_GAMESET:
+                    {
+                        int winner = BinaryPrimitives.ReadInt32BigEndian(m_RecvPacket.Data);
+                        if (m_Socket.GetUserNum() == winner)
+                        {
+                            Debug.Log($"You Win! Game Set!");
+                            m_TextManager.EndText(true, false);
+                        }
+                        else
+                        {
+                            Debug.Log($"You Lose! Game Set!");
+                            m_TextManager.EndText(false, false);
                         }
                         break;
                     }
@@ -315,6 +332,8 @@ public class CupManager : MonoBehaviour
                     {
                         Debug.Log("GameSet!");
                         m_Toggle = true;
+                        PauseEvent.Reset();
+                        PauseEvent.WaitOne();
                         break;
                     }
                 case DATATYPE.DATATYPE_USERINFO:
@@ -400,7 +419,7 @@ public class CupManager : MonoBehaviour
     {
         m_SendPacket.Type = DATATYPE.DATATYPE_TURN;
         m_SendPacket.DataSize = sizeof(int);
-        BinaryPrimitives.WriteInt32BigEndian(m_SendPacket.Data, actable == true? (int)DATA.DATA_SKIPTURN : (int)DATA.DATA_UNACTABLE);
+        BinaryPrimitives.WriteInt32BigEndian(m_SendPacket.Data, actable == true ? (int)DATA.DATA_SKIPTURN : (int)DATA.DATA_UNACTABLE);
         m_Socket.SendMessage(m_SendPacket);
         m_TextManager.EndTurn();
         m_Myturn = false;
@@ -456,5 +475,10 @@ public class CupManager : MonoBehaviour
         }
 
         return false;
+    }
+
+    public void RoundStart()
+    {
+        m_TextManager.NextRound();
     }
 }
