@@ -12,11 +12,14 @@ public class TextManager : MonoBehaviour
     public TextMeshProUGUI TurnChecker;
     public TextMeshProUGUI m_RoundText;
     public TextMeshProUGUI m_EndText;
+    public TextMeshProUGUI[] m_PlayerScore;
+    public GameObject[] m_Player;
     public GameObject m_GameSetImage;
     public Button m_NextRoundButton;
 
-    public bool m_TimeOut = true;
-    public string TurnPlayer = "0";
+    public bool m_TimeOut = false;
+    public int m_TurnPlayer = 0;
+    public int[] m_Score = new int[3];
 
     private bool m_Toggle = false;
     private bool TurnCheck;
@@ -35,7 +38,7 @@ public class TextManager : MonoBehaviour
         {
             if (TurnCheck)
             {
-                TurnChecker.text = $"Player {TurnPlayer}'s Turn";
+                TurnChecker.text = $"Player {m_TurnPlayer}'s Turn";
             }
 
             m_Toggle = false;
@@ -85,15 +88,40 @@ public class TextManager : MonoBehaviour
         TurnChecker.gameObject.SetActive(false);
         m_CurrentTurnTime = TURNTIME;
         m_NextRoundButton.gameObject.SetActive(!FinalRound);
-        
+
         m_Pause = true;
     }
 
     public void NextRound()
     {
+        for (int i = 0; i < 3; ++i)
+        {
+            m_Score[i] = 0;
+        }
+        
         m_GameSetImage.SetActive(false);
         TurnChecker.gameObject.SetActive(true);
         m_CurrentTurnTime = TURNTIME;
         m_Pause = false;
+    }
+
+    public void Set_PlayerTurn(int PlayerNum)
+    {
+        m_TurnPlayer = PlayerNum;
+    }
+
+    public void Set_MyPlayer(int PlayerNum)
+    {
+        if (PlayerNum != 0)
+        {
+            Vector3 Temp = m_Player[0].transform.position;
+            m_Player[0].transform.position = m_Player[PlayerNum].transform.position;
+            m_Player[PlayerNum].transform.position = Temp;
+        }
+    }
+
+    public void add_Score()
+    {
+        ++m_Score[m_TurnPlayer];
     }
 }

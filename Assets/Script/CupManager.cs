@@ -1,10 +1,8 @@
 using System;
 using System.Buffers.Binary;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.U2D;
@@ -66,6 +64,7 @@ public class CupManager : MonoBehaviour
 
         m_Actables[0] = m_Actables[1] = m_Actables[2] = FloorFirstIndex[1];
         m_TextManager.SetRoundText(1);
+        m_TextManager.Set_MyPlayer(m_Socket.GetUserNum());
     }
 
     void Update()
@@ -153,7 +152,6 @@ public class CupManager : MonoBehaviour
             return;
 
         //Usablecups 원소들의 인덱스가 바뀌어버린다.
-
         m_SelectIndex = -1;
     }
 
@@ -278,7 +276,7 @@ public class CupManager : MonoBehaviour
             Debug.Log("==================================");
             switch (m_RecvPacket.Type)
             {
-                case DATATYPE.DATATYPE_CHAT:
+                case DATATYPE.DATATYPE_DEBUG:
                     {
                         string Message = Encoding.UTF8.GetString(m_RecvPacket.Data, 0, m_RecvPacket.DataSize);
                         Debug.Log(Message);
@@ -293,8 +291,8 @@ public class CupManager : MonoBehaviour
                     }
                 case DATATYPE.DATATYPE_TURN:
                     {
-                        int TurnNum = BinaryPrimitives.ReadInt32BigEndian(m_RecvPacket.Data);
-                        if (m_Socket.GetUserNum() == TurnNum)
+                        int TurnPlayer = BinaryPrimitives.ReadInt32BigEndian(m_RecvPacket.Data);
+                        if (m_Socket.GetUserNum() == TurnPlayer)
                         {
                             if (false == ActableCheck())
                             {
@@ -310,9 +308,9 @@ public class CupManager : MonoBehaviour
                         else
                         {
                             m_Myturn = false;
-                            m_TextManager.TurnPlayer = TurnNum.ToString();
+                            m_TextManager.Set_PlayerTurn(TurnPlayer); 
                             m_TextManager.EndTurn();
-                            Debug.Log($"Player {TurnNum} Turn");
+                            //Debug.Log($"Player {TurnPlayer} Turn");
                         }
                         break;
                     }
@@ -356,6 +354,8 @@ public class CupManager : MonoBehaviour
 
     private void StackCup()
     {
+        m_TextManager.add_Score();
+        
         int CupPos = BinaryPrimitives.ReadInt32BigEndian(m_RecvPacket.Data);
         int GameAct = BinaryPrimitives.ReadInt32BigEndian(m_RecvPacket.Data.AsSpan(4, 4));
         //Debug.Log($"\nCupPos : {CupPos}\tGameAct : {GameAct}");

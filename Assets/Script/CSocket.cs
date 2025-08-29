@@ -7,7 +7,7 @@ using UnityEngine;
 
 public enum DATATYPE
 {
-    DATATYPE_CHAT,
+    DATATYPE_DEBUG,
     DATATYPE_GAME,
     DATATYPE_TURN,
     DATATYPE_ENDGAME,
@@ -60,7 +60,7 @@ public class CSocket : MonoBehaviour
         if (false == Recv(4, RecvBuffer)) // 사이즈
             return;
         packet.DataSize = BinaryPrimitives.ReadInt32BigEndian(RecvBuffer);
-        Debug.Log($"Type : {packet.Type}, Size : {packet.DataSize}");
+        //Debug.Log($"Type : {packet.Type}, Size : {packet.DataSize}");
 
         if (false == Recv(packet.DataSize, packet.Data)) // 데이터
             return;
