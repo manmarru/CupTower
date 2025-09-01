@@ -46,7 +46,7 @@ public class CSocket : MonoBehaviour
         m_Client.Connect(new IPEndPoint(IPAddress.Parse(Address), 25565));
 
         Recv(4, RecvBuffer);
-        UserNum = BitConverter.ToInt32(RecvBuffer, 0); // 입장메시지 받기
+        UserNum = BinaryPrimitives.ReadInt32BigEndian(RecvBuffer); // 입장메시지 받기
 
         Debug.Log($"UserNum{UserNum}");
     }

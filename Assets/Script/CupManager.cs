@@ -37,6 +37,7 @@ public class CupManager : MonoBehaviour
     private int m_SelectIndex = -1; // 하단 버튼 선택
     private bool m_StopLoop = false;
     private bool m_Myturn = false;
+    private object m_ToggleLock;
 
     void Start()
     {
@@ -69,7 +70,7 @@ public class CupManager : MonoBehaviour
 
     void Update()
     {
-        if (true == m_Myturn && true == m_TextManager.m_TimeOut)
+        if (true == m_Myturn && true == m_TextManager.GetTimeOut())
         {
             Debug.Log("TimeOut!");
             SkipTurn(true);
@@ -78,55 +79,58 @@ public class CupManager : MonoBehaviour
         if (true == m_Toggle)
         {
             switch (m_RecvPacket.Type)
-            {
-                case DATATYPE.DATATYPE_GAME:
-                    {
-                        StackCup();
-                        break;
-                    }
-                case DATATYPE.DATATYPE_TURN:
-                    {
-                        m_TextManager.StartTurn();
-                        break;
-                    }
-                case DATATYPE.DATATYPE_USERINFO:
-                    {
-                        TableSetting();
-                        break;
-                    }
-                case DATATYPE.DATATYPE_ENDGAME:
-                    {
-                        int winner = BinaryPrimitives.ReadInt32BigEndian(m_RecvPacket.Data);
-                        if (m_Socket.GetUserNum() == winner)
+                {
+                    case DATATYPE.DATATYPE_GAME:
                         {
-                            Debug.Log("You Are Winner!");
-                            m_TextManager.EndText(true, true);
+                            StackCup();
+                            break;
                         }
-                        else
+                    case DATATYPE.DATATYPE_TURN:
                         {
-                            Debug.Log("You Are Loser!");
-                            m_TextManager.EndText(false, true);
+                            m_TextManager.StartTurn();
+                            break;
                         }
-                        break;
-                    }
-                case DATATYPE.DATATYPE_GAMESET:
-                    {
-                        int winner = BinaryPrimitives.ReadInt32BigEndian(m_RecvPacket.Data);
-                        if (m_Socket.GetUserNum() == winner)
+                    case DATATYPE.DATATYPE_USERINFO:
                         {
-                            Debug.Log($"You Win! Game Set!");
-                            m_TextManager.EndText(true, false);
+                            TableSetting();
+                            break;
                         }
-                        else
+                    case DATATYPE.DATATYPE_ENDGAME:
                         {
-                            Debug.Log($"You Lose! Game Set!");
-                            m_TextManager.EndText(false, false);
+                            int winner = BinaryPrimitives.ReadInt32BigEndian(m_RecvPacket.Data);
+                            if (m_Socket.GetUserNum() == winner)
+                            {
+                                Debug.Log("You Are Winner!");
+                                m_TextManager.EndText(true, true);
+                            }
+                            else
+                            {
+                                Debug.Log("You Are Loser!");
+                                m_TextManager.EndText(false, true);
+                            }
+                            break;
                         }
-                        break;
-                    }
-            }
+                    case DATATYPE.DATATYPE_GAMESET:
+                        {
+                            int winner = BinaryPrimitives.ReadInt32BigEndian(m_RecvPacket.Data);
+                            if (m_Socket.GetUserNum() == winner)
+                            {
+                                Debug.Log($"You Win! Game Set!");
+                                m_TextManager.EndText(true, false);
+                            }
+                            else
+                            {
+                                Debug.Log($"You Lose! Game Set!");
+                                m_TextManager.EndText(false, false);
+                            }
+                            break;
+                        }
+                }
             m_Toggle = false;
-            PauseEvent.Set();
+            lock (m_ToggleLock)
+            {
+                PauseEvent.Set();
+            }
         }
     }
 
@@ -148,7 +152,7 @@ public class CupManager : MonoBehaviour
         if (StackIndex == -1)
             Debug.Log("StackIndex Error!");
 
-        if (false == UseBol(StackIndex))
+        if (false == UseCup(StackIndex))
             return;
 
         //Usablecups 원소들의 인덱스가 바뀌어버린다.
@@ -175,7 +179,7 @@ public class CupManager : MonoBehaviour
         }
     }
 
-    public bool UseBol(int StackIndex)
+    public bool UseCup(int StackIndex)
     {
         //선택하고 있었던 버튼을 뒤로 보내고 디폴트 이미지로 전환
         if (m_Remain <= 0)
@@ -284,8 +288,11 @@ public class CupManager : MonoBehaviour
                     }
                 case DATATYPE.DATATYPE_GAME:
                     {
-                        m_Toggle = true;
-                        PauseEvent.Reset();
+                        lock (m_ToggleLock)
+                        {
+                            m_Toggle = true;
+                            PauseEvent.Reset(); // set 이전에 reset 실행이 보장돼야 함.
+                        }
                         PauseEvent.WaitOne(); // 쓰레드 멈춤
                         break;
                     }
@@ -300,16 +307,20 @@ public class CupManager : MonoBehaviour
                                 SkipTurn(false);
                                 break;
                             }
-                            m_Myturn = true;
-                            m_Toggle = true;
-                            PauseEvent.Reset();
+
+                            lock(m_ToggleLock)
+                            {
+                                m_Myturn = true;
+                                m_Toggle = true;
+                                PauseEvent.Reset();
+                            }
                             PauseEvent.WaitOne();
+                            
+                            //update -> Textmanager.StartTurn;
                         }
-                        else
+                        else // 내차례가 아님
                         {
-                            m_Myturn = false;
-                            m_TextManager.Set_PlayerTurn(TurnPlayer); 
-                            m_TextManager.EndTurn();
+                            m_TextManager.Set_PlayerTurn(TurnPlayer);
                             //Debug.Log($"Player {TurnPlayer} Turn");
                         }
                         break;
@@ -317,7 +328,7 @@ public class CupManager : MonoBehaviour
                 case DATATYPE.DATATYPE_ENDGAME:
                     {
                         m_Toggle = true;
-                        m_StopLoop = true; // 쓰레드 끌거라 멈출 필요 없음
+                        m_StopLoop = true; // 쓰레드 끌거라 쓰레드 멈출 필요 없음
 
                         m_SendPacket.Type = DATATYPE.DATATYPE_ENDGAME;
                         m_SendPacket.DataSize = CSocket.DATASIZE_NODATA;
@@ -328,17 +339,23 @@ public class CupManager : MonoBehaviour
                     }
                 case DATATYPE.DATATYPE_GAMESET:
                     {
-                        Debug.Log("GameSet!");
-                        m_Toggle = true;
-                        PauseEvent.Reset();
+                        lock (m_ToggleLock)
+                        {   
+                            Debug.Log("GameSet!");
+                            m_Toggle = true;
+                            PauseEvent.Reset();
+                        }
                         PauseEvent.WaitOne();
                         break;
                     }
                 case DATATYPE.DATATYPE_USERINFO:
                     {
-                        Debug.Log("TableSet!");
-                        m_Toggle = true;
-                        PauseEvent.Reset();
+                        lock (m_ToggleLock)
+                        {
+                            Debug.Log("TableSet!");
+                            m_Toggle = true;
+                            PauseEvent.Reset();
+                        }
                         PauseEvent.WaitOne(); // 쓰레드 멈춤
                         break;
                     }
@@ -417,6 +434,9 @@ public class CupManager : MonoBehaviour
 
     public void SkipTurn(bool actable)
     {
+        if (false == m_Myturn)
+            return;
+
         m_SendPacket.Type = DATATYPE.DATATYPE_TURN;
         m_SendPacket.DataSize = sizeof(int);
         BinaryPrimitives.WriteInt32BigEndian(m_SendPacket.Data, actable == true ? (int)DATA.DATA_SKIPTURN : (int)DATA.DATA_UNACTABLE);

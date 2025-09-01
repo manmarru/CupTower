@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Threading;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -17,7 +18,7 @@ public class TextManager : MonoBehaviour
     public GameObject m_GameSetImage;
     public Button m_NextRoundButton;
 
-    public bool m_TimeOut = false;
+    private bool m_TimeOut = false;
     public int m_TurnPlayer = 0;
     public int[] m_Score = new int[3];
 
@@ -55,7 +56,7 @@ public class TextManager : MonoBehaviour
 
     public void EndTurn()
     {
-        m_TimeOut = true;
+        m_TimeOut = false;
         m_CurrentTurnTime = TURNTIME;
         m_Toggle = true;
     }
@@ -72,7 +73,8 @@ public class TextManager : MonoBehaviour
 
         if (m_CurrentTurnTime < 0)
         {
-            m_TimeOut = false;
+            m_CurrentTurnTime = 0f;
+            m_TimeOut = true;
         }
     }
 
@@ -97,8 +99,9 @@ public class TextManager : MonoBehaviour
         for (int i = 0; i < 3; ++i)
         {
             m_Score[i] = 0;
+            m_PlayerScore[i].text = "0";
         }
-        
+
         m_GameSetImage.SetActive(false);
         TurnChecker.gameObject.SetActive(true);
         m_CurrentTurnTime = TURNTIME;
@@ -123,5 +126,16 @@ public class TextManager : MonoBehaviour
     public void add_Score()
     {
         ++m_Score[m_TurnPlayer];
+        m_PlayerScore[m_TurnPlayer].text = $"{m_Score[m_TurnPlayer]}";
+    }
+
+    public bool GetTimeOut()
+    {
+        return m_TimeOut;
+    }
+
+    public void Set_TimeOut(bool timeOut)
+    {
+        m_TimeOut = timeOut;
     }
 }
