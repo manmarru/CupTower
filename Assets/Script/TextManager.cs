@@ -18,14 +18,17 @@ public class TextManager : MonoBehaviour
     public GameObject m_GameSetImage;
     public Button m_NextRoundButton;
 
-    private bool m_TimeOut = false;
+    private bool m_StopTimer = false;
     public int m_TurnPlayer = 0;
     public int[] m_Score = new int[3];
 
-    private bool m_Toggle = false;
-    private bool TurnCheck;
     private float m_CurrentTurnTime;
     private bool m_Pause;
+
+    void Start()
+    {
+        m_CurrentTurnTime = TURNTIME;
+    }
 
     void Update()
     {
@@ -34,47 +37,39 @@ public class TextManager : MonoBehaviour
             return;
         }
 
-        Update_Timer();
-        if (true == m_Toggle)
+        if (false == m_StopTimer)
         {
-            if (TurnCheck)
-            {
-                TurnChecker.text = $"Player {m_TurnPlayer}'s Turn";
-            }
-
-            m_Toggle = false;
+            Update_Timer();
         }
+    }
+
+    public void Set_TurnText()
+    {
+        TurnChecker.text = $"Player {m_TurnPlayer}'s Turn";
     }
 
     public void StartTurn()
     {
         m_CurrentTurnTime = TURNTIME;
-        m_TimeOut = false;
-        Timer.enabled = true;
+        m_StopTimer = false;
         TurnChecker.text = "My Turn!";
     }
 
-    public void EndTurn()
+    public void ResetTimer()
     {
-        m_TimeOut = false;
+        m_StopTimer = true;
         m_CurrentTurnTime = TURNTIME;
-        m_Toggle = true;
     }
 
     private void Update_Timer()
     {
-        if (true == m_TimeOut)
-        {
-            return;
-        }
-
         m_CurrentTurnTime -= Time.deltaTime;
         Timer.text = ((int)m_CurrentTurnTime).ToString();
 
         if (m_CurrentTurnTime < 0)
         {
             m_CurrentTurnTime = 0f;
-            m_TimeOut = true;
+            m_StopTimer = true;
         }
     }
 
@@ -129,13 +124,13 @@ public class TextManager : MonoBehaviour
         m_PlayerScore[m_TurnPlayer].text = $"{m_Score[m_TurnPlayer]}";
     }
 
-    public bool GetTimeOut()
+    public bool Get_TimerStop()
     {
-        return m_TimeOut;
+        return m_StopTimer;
     }
 
-    public void Set_TimeOut(bool timeOut)
+    public void Set_TimerStop(bool timeOut)
     {
-        m_TimeOut = timeOut;
+        m_StopTimer = timeOut;
     }
 }
