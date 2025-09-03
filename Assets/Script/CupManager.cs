@@ -448,9 +448,6 @@ public class CupManager : MonoBehaviour
 
     public void SkipTurn(bool actable)
     {
-        if (false == m_Myturn)
-            return;
-
         m_SendPacket.Type = DATATYPE.DATATYPE_TURN;
         m_SendPacket.DataSize = sizeof(int);
         if (true == actable)
