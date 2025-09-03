@@ -288,6 +288,8 @@ public class CupManager : MonoBehaviour
                 case DATATYPE.DATATYPE_TURN:
                     {
                         int TurnPlayer = BinaryPrimitives.ReadInt32BigEndian(m_RecvPacket.Data);
+                        m_TextManager.Set_PlayerTurn(TurnPlayer);
+
                         if (m_Socket.GetUserNum() == TurnPlayer) // 내 차례면
                         {
                             Debug.Log("AbleCheck");
@@ -312,7 +314,6 @@ public class CupManager : MonoBehaviour
                         }
                         else // 내차례가 아님
                         {
-                            m_TextManager.Set_PlayerTurn(TurnPlayer);
                             m_TextManager.ResetTimer();
                             m_Myturn = false;
                         }

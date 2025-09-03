@@ -1,7 +1,4 @@
-using System.Runtime.CompilerServices;
-using System.Threading;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -45,7 +42,14 @@ public class TextManager : MonoBehaviour
 
     public void Set_TurnText()
     {
-        TurnChecker.text = $"Player {m_TurnPlayer}'s Turn";
+        if (m_StopTimer == false)
+        {
+            TurnChecker.text = "My Turn!";
+        }
+        else
+        {
+            TurnChecker.text = $"Player {m_TurnPlayer}'s Turn";
+        }
     }
 
     public void StartTurn()
@@ -110,11 +114,34 @@ public class TextManager : MonoBehaviour
 
     public void Set_MyPlayer(int PlayerNum)
     {
+        //const float DEFAULTY = 95f;
+        //const float DEFAULTX = 319;
+
         if (PlayerNum != 0)
         {
-            Vector3 Temp = m_Player[0].transform.position;
-            m_Player[0].transform.position = m_Player[PlayerNum].transform.position;
-            m_Player[PlayerNum].transform.position = Temp;
+            Vector3 Pos = m_Player[0].transform.Find("ScoreUIParent").localPosition;
+            Pos.x *= -1;
+            m_Player[0].transform.Find("ScoreUIParent").localPosition = Pos;
+
+            Pos = m_Player[PlayerNum].transform.Find("ScoreUIParent").localPosition;
+            Pos.x *= -1;
+            m_Player[PlayerNum].transform.Find("ScoreUIParent").localPosition = Pos;
+
+            Pos = m_Player[0].transform.localPosition;
+            Pos.x *= -1;
+            if (PlayerNum == 2)
+            {
+                Pos.y *= -1;
+            }
+            m_Player[0].transform.localPosition = Pos;
+
+            Pos = m_Player[PlayerNum].transform.localPosition;
+            Pos.x *= -1;
+            if (PlayerNum == 2)
+            {
+                Pos.y *= -1;
+            }
+            m_Player[PlayerNum].transform.localPosition = Pos;
         }
     }
 
