@@ -40,9 +40,9 @@ public class TextManager : MonoBehaviour
         }
     }
 
-    public void Set_TurnText()
+    public void Set_TurnText(bool Myturn)
     {
-        if (m_StopTimer == false)
+        if (true == Myturn)
         {
             TurnChecker.text = "My Turn!";
         }

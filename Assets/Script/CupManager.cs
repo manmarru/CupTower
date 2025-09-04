@@ -17,6 +17,7 @@ public class CupManager : MonoBehaviour
     private const int GAP = 55;
     private const int BLANK = 5;
 
+    public SoundBox m_SoundBox;
     public TextManager m_TextManager;
     public TextMeshProUGUI m_EndText;
     public SpriteAtlas Atlas;
@@ -87,54 +88,58 @@ public class CupManager : MonoBehaviour
         if (true == m_Toggle)
         {
             switch (m_RecvPacket.Type)
-                {
-                    case DATATYPE.DATATYPE_GAME:
+            {
+                case DATATYPE.DATATYPE_GAME:
+                    {
+                        StackCup();
+                        break;
+                    }
+                case DATATYPE.DATATYPE_TURN:
+                    {
+                        m_TextManager.StartTurn();
+                        m_TextManager.Set_TurnText(m_Myturn);
+                        break;
+                    }
+                case DATATYPE.DATATYPE_USERINFO:
+                    {
+                        TableSetting();
+                        break;
+                    }
+                case DATATYPE.DATATYPE_ENDGAME:
+                    {
+                        int winner = BinaryPrimitives.ReadInt32BigEndian(m_RecvPacket.Data);
+                        if (m_Socket.GetUserNum() == winner)
                         {
-                            StackCup();
-                            break;
+                            m_SoundBox.PlaySound((int)SoundBox.SOUND.SOUND_WIN);
+                            Debug.Log("You Are Winner!");
+                            m_TextManager.EndText(true, true);
                         }
-                    case DATATYPE.DATATYPE_TURN:
+                        else
                         {
-                            m_TextManager.StartTurn();
-                            m_TextManager.Set_TurnText();
-                            break;
+                            m_SoundBox.PlaySound((int)SoundBox.SOUND.SOUND_LOSE);
+                            Debug.Log("You Are Loser!");
+                            m_TextManager.EndText(false, true);
                         }
-                    case DATATYPE.DATATYPE_USERINFO:
+                        break;
+                    }
+                case DATATYPE.DATATYPE_GAMESET:
+                    {
+                        int winner = BinaryPrimitives.ReadInt32BigEndian(m_RecvPacket.Data);
+                        if (m_Socket.GetUserNum() == winner)
                         {
-                            TableSetting();
-                            break;
+                            m_SoundBox.PlaySound((int)SoundBox.SOUND.SOUND_WIN);
+                            Debug.Log($"You Win! Game Set!");
+                            m_TextManager.EndText(true, false);
                         }
-                    case DATATYPE.DATATYPE_ENDGAME:
+                        else
                         {
-                            int winner = BinaryPrimitives.ReadInt32BigEndian(m_RecvPacket.Data);
-                            if (m_Socket.GetUserNum() == winner)
-                            {
-                                Debug.Log("You Are Winner!");
-                                m_TextManager.EndText(true, true);
-                            }
-                            else
-                            {
-                                Debug.Log("You Are Loser!");
-                                m_TextManager.EndText(false, true);
-                            }
-                            break;
+                            m_SoundBox.PlaySound((int)SoundBox.SOUND.SOUND_LOSE);
+                            Debug.Log($"You Lose! Game Set!");
+                            m_TextManager.EndText(false, false);
                         }
-                    case DATATYPE.DATATYPE_GAMESET:
-                        {
-                            int winner = BinaryPrimitives.ReadInt32BigEndian(m_RecvPacket.Data);
-                            if (m_Socket.GetUserNum() == winner)
-                            {
-                                Debug.Log($"You Win! Game Set!");
-                                m_TextManager.EndText(true, false);
-                            }
-                            else
-                            {
-                                Debug.Log($"You Lose! Game Set!");
-                                m_TextManager.EndText(false, false);
-                            }
-                            break;
-                        }
-                }
+                        break;
+                    }
+            }
             m_Toggle = false;
             lock (m_ToggleLock)
             {
@@ -180,6 +185,9 @@ public class CupManager : MonoBehaviour
             m_SelectIndex = -1;
             return;
         }
+
+        m_SoundBox.PlaySound((int)SoundBox.SOUND.SOUND_SELECT);
+
         //선택한 버튼의 인덱스를 저장하기
         GameObject selectButton = EventSystem.current.currentSelectedGameObject;
         for (int i = 0; i < m_Remain; ++i)
@@ -212,7 +220,10 @@ public class CupManager : MonoBehaviour
             string CheckRight = Cups[FloorFirstIndex[Floor - 1] + FloorIndex + 1].GetComponent<StackCup>().GetName(); // 우하단
 
             if (CheckLeft != CheckSelect && CheckRight != CheckSelect)
+            {
+                m_SoundBox.PlaySound((int)SoundBox.SOUND.SOUND_ERROR);
                 return false;
+            }
         }
 
         m_SendPacket.Type = DATATYPE.DATATYPE_GAME;
@@ -335,7 +346,7 @@ public class CupManager : MonoBehaviour
                 case DATATYPE.DATATYPE_GAMESET:
                     {
                         lock (m_ToggleLock)
-                        {   
+                        {
                             Debug.Log("GameSet!");
                             m_Toggle = true;
                             PauseEvent.Reset();
@@ -367,6 +378,7 @@ public class CupManager : MonoBehaviour
     private void StackCup()
     {
         m_TextManager.add_Score();
+        m_SoundBox.PlaySound((int)SoundBox.SOUND.SOUND_USE);
 
         int CupPos = BinaryPrimitives.ReadInt32BigEndian(m_RecvPacket.Data);
         int GameAct = BinaryPrimitives.ReadInt32BigEndian(m_RecvPacket.Data.AsSpan(4, 4));
@@ -442,7 +454,7 @@ public class CupManager : MonoBehaviour
                 Cups[NextIndex].interactable = true;
             }
         }
-        
+
         Debug.Log($"\nActables      -> 0 : {m_Actables[0]}, 1 : {m_Actables[1]}, 2 : {m_Actables[2]}");
         Debug.Log($"\nRemain Usable -> 0  : {m_Remains[0]}, 1 : {m_Remains[1]}, 2 : {m_Remains[2]}");
     }
