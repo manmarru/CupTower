@@ -359,7 +359,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: 86913a333364506429368140865a1bc3, type: 3}
   m_Resource: {fileID: 8300000, guid: 86913a333364506429368140865a1bc3, type: 3}
-  m_PlayOnAwake: 1
+  m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
   Loop: 0
@@ -488,7 +488,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: 83d75137de7626549873b7472fef8f1b, type: 3}
   m_Resource: {fileID: 8300000, guid: 83d75137de7626549873b7472fef8f1b, type: 3}
-  m_PlayOnAwake: 1
+  m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
   Loop: 0
@@ -1676,7 +1676,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: 3e43a77fdb0ca3248a84c814054e6c1e, type: 3}
   m_Resource: {fileID: 8300000, guid: 3e43a77fdb0ca3248a84c814054e6c1e, type: 3}
-  m_PlayOnAwake: 1
+  m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
   Loop: 0
@@ -3019,7 +3019,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: 75b55e8b5c098dd4abdde052f6b68ad3, type: 3}
   m_Resource: {fileID: 8300000, guid: 75b55e8b5c098dd4abdde052f6b68ad3, type: 3}
-  m_PlayOnAwake: 1
+  m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
   Loop: 0
@@ -3426,6 +3426,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 905242788790303839, guid: ee66fb04f31b4244a8c45a722e775827, type: 3}
+      propertyPath: Loop
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 905242788790303839, guid: ee66fb04f31b4244a8c45a722e775827, type: 3}
       propertyPath: m_Resource
       value: 
       objectReference: {fileID: 8300000, guid: 3b6e16facc57a7e42ad94034e87896ea, type: 3}
@@ -3433,6 +3437,10 @@ PrefabInstance:
       propertyPath: m_audioClip
       value: 
       objectReference: {fileID: 8300000, guid: 3b6e16facc57a7e42ad94034e87896ea, type: 3}
+    - target: {fileID: 905242788790303839, guid: ee66fb04f31b4244a8c45a722e775827, type: 3}
+      propertyPath: m_PlayOnAwake
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4456592937998845747, guid: ee66fb04f31b4244a8c45a722e775827, type: 3}
       propertyPath: m_LocalPosition.x
       value: 605.5
@@ -6699,7 +6707,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: b7f69e8c27035404b99d83ad844362c3, type: 3}
   m_Resource: {fileID: 8300000, guid: b7f69e8c27035404b99d83ad844362c3, type: 3}
-  m_PlayOnAwake: 1
+  m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
   Loop: 0
@@ -9755,7 +9763,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1954463450
 RectTransform:
   m_ObjectHideFlags: 0
@@ -10078,7 +10086,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &2008636585
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10099,7 +10107,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Player 0's Turn
+  m_text: My Turn!
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

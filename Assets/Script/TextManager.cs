@@ -40,23 +40,19 @@ public class TextManager : MonoBehaviour
         }
     }
 
-    public void Set_TurnText(bool Myturn)
+    public void TurnTextOff()
     {
-        if (true == Myturn)
-        {
-            TurnChecker.text = "My Turn!";
-        }
-        else
-        {
-            TurnChecker.text = $"Player {m_TurnPlayer}'s Turn";
-        }
+        TurnChecker.gameObject.SetActive(false);
+        Timer.gameObject.SetActive(false);
     }
 
     public void StartTurn()
     {
+        TurnChecker.gameObject.SetActive(true);
+        Timer.gameObject.SetActive(true);
+        TurnChecker.text = "My Turn!";
         m_CurrentTurnTime = TURNTIME;
         m_StopTimer = false;
-        TurnChecker.text = "My Turn!";
     }
 
     public void ResetTimer()
@@ -142,6 +138,12 @@ public class TextManager : MonoBehaviour
                 Pos.y *= -1;
             }
             m_Player[PlayerNum].transform.localPosition = Pos;
+        }
+        else
+        {
+            TurnChecker.gameObject.SetActive(true);
+            Timer.gameObject.SetActive(true);
+            TurnChecker.text = "My Turn!";
         }
     }
 

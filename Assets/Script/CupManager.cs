@@ -1,5 +1,6 @@
 using System;
 using System.Buffers.Binary;
+using System.Runtime.Serialization.Formatters;
 using System.Text;
 using System.Threading;
 using TMPro;
@@ -82,7 +83,8 @@ public class CupManager : MonoBehaviour
         if (true == m_Myturn && true == m_TextManager.Get_TimerStop())
         {
             Debug.Log("TimeOut!");
-            SkipTurn(true); // 중복 호출되고 있음
+            SkipTurn(true);
+            m_TextManager.TurnTextOff();
         }
 
         if (true == m_Toggle)
@@ -92,12 +94,12 @@ public class CupManager : MonoBehaviour
                 case DATATYPE.DATATYPE_GAME:
                     {
                         StackCup();
+                        m_TextManager.TurnTextOff();
                         break;
                     }
                 case DATATYPE.DATATYPE_TURN:
                     {
                         m_TextManager.StartTurn();
-                        m_TextManager.Set_TurnText(m_Myturn);
                         break;
                     }
                 case DATATYPE.DATATYPE_USERINFO:
@@ -533,5 +535,13 @@ public class CupManager : MonoBehaviour
     public void RoundStart()
     {
         m_TextManager.NextRound();
+        if (m_Socket.GetUserNum() == 0)
+        {
+            m_TextManager.StartTurn();
+        }
+        else
+        {
+            m_TextManager.TurnTextOff();
+        }
     }
 }
