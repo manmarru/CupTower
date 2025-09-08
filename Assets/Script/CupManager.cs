@@ -39,7 +39,7 @@ public class CupManager : MonoBehaviour
     private int m_SelectIndex = -1; // 하단 버튼 선택
     private bool m_StopLoop = false;
     private bool m_Myturn = false;
-    private object m_ToggleLock;// = new object();
+    private object m_ToggleLock;
 
     void Start()
     {
@@ -364,7 +364,7 @@ public class CupManager : MonoBehaviour
                             m_Toggle = true;
                             PauseEvent.Reset();
                         }
-                        PauseEvent.WaitOne(); // 쓰레드 멈춤
+                        PauseEvent.WaitOne();
                         break;
                     }
                 default:
@@ -468,6 +468,7 @@ public class CupManager : MonoBehaviour
         if (true == actable)
         {
             BinaryPrimitives.WriteInt32BigEndian(m_SendPacket.Data, (int)DATA.DATA_SKIPTURN);
+            m_TextManager.TurnTextOff();
         }
         else
         {
