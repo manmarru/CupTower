@@ -15,6 +15,6 @@
   버전관리 : Github Desktop  
 
 # 주요 코드
-- [CSocket.cs](https://github.com/manmarru/CupTower/blob/main/Assets/Script/CSocket.cs)  
-- [CupManager.cs](https://github.com/manmarru/CupTower/blob/main/Assets/Script/CupManager.cs)  
-- [TextManager.cs](https://github.com/manmarru/CupTower/blob/main/Assets/Script/TextManager.cs)  
+- [CSocket.cs](https://github.com/manmarru/CupTower/blob/main/Assets/Script/CSocket.cs) : 클라이언트 소켓 코드입니다.  
+- [CupManager.cs](https://github.com/manmarru/CupTower/blob/main/Assets/Script/CupManager.cs) : 멀티쓰레딩을 통해 데이터를 처리하고 메인 쓰레드에서 유니티 기능을 처리합니다.  
+- [TextManager.cs](https://github.com/manmarru/CupTower/blob/main/Assets/Script/TextManager.cs) : 타이머와 턴 알림 TMP UI 제어를 담당합니다.
