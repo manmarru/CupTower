@@ -14,3 +14,7 @@
   엔진 : Unity  
   버전관리 : Github Desktop  
 
+# 주요 코드
+- [CSocket.cs](https://github.com/manmarru/CupTower/blob/main/Assets/Script/CSocket.cs)  
+- [CupManager.cs](https://github.com/manmarru/CupTower/blob/main/Assets/Script/CupManager.cs)  
+- [TextManager.cs](https://github.com/manmarru/CupTower/blob/main/Assets/Script/TextManager.cs)  
